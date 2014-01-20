@@ -1,14 +1,15 @@
+define(function() {
 /**
  * Optimized 2D general-purpose vector class with fairly complete functionality.
  */
-function Vec2(x, y) {
+var Vec2 = function(x, y) {
 	if (typeof x === 'undefined') x = 0;
 	if (typeof y === 'undefined') y = 0;
 	this.x = x;
 	this.y = y;
 	// something extra for arbitrary data
 	// this.w = null;
-}
+};
 
 /**
  * Sets the length which will change x and y, but not the angle.
@@ -249,3 +250,7 @@ Vec2.draw = function(ctx, v1, v2, drawingColor, camOffsetX, camOffsetY) {
 	ctx.lineTo(v2.x + camOffsetX, v2.y + camOffsetY);
 	ctx.stroke();
 };
+
+window.Vec2 = Vec2;
+return Vec2;
+});

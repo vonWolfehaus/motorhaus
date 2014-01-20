@@ -1,4 +1,4 @@
-define(['src/lib/Signal.js'], function() {
+define(['lib/Signal'], function() {
 	/**
 	 * Global list of system-level Signals that anything can subscribe to.
 	 */

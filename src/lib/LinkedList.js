@@ -1,18 +1,18 @@
 /**
  * @source https://github.com/martinwells/gamecore.js
+ * Hoisted to the global namespace for convenience.
  */
-
+define(function(){
 /**
- * @description
  * Represents an item stored in a linked list.
  */
-LinkedListNode = function() {
+var LinkedListNode = function() {
 	this.obj = null; // the object reference
 	this.next = null; // link to next object in the list
 	this.prev = null; // link to previous object in the list
 	this.free = true;
 };
-
+window.LinkedListNode = LinkedListNode;
 /**
  * @description
  * A high-speed doubly linked list of objects. Note that for speed reasons (using a dictionary lookup of
@@ -36,7 +36,7 @@ LinkedListNode = function() {
  *   }
  * </code></pre>
  */
-LinkedList = function() {
+var LinkedList = function() {
 	this.first = null;
 	this.last = null;
 	this.length = 0;
@@ -314,3 +314,7 @@ LinkedList = function() {
 			"First: {" + (this.first ? this.first.obj : 'NULL') + "}");
 	};
 };
+
+window.LinkedList = LinkedList;
+return LinkedList;
+});

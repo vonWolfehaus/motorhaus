@@ -1,7 +1,7 @@
 /**
  * Global state resources. No idea why I called it 'Kai'.
  */
-define(['require', 'src/utils/DebugDraw.js', 'src/math/Vec2.js', 'src/lib/LinkedList.js'],
+define(['require', 'utils/DebugDraw', 'math/Vec2', 'lib/LinkedList'],
 		function(require) {
 	
 	return {
@@ -13,6 +13,7 @@ define(['require', 'src/utils/DebugDraw.js', 'src/math/Vec2.js', 'src/lib/Linked
 		
 		mouse: null,
 		keys: null,
+		pads: null,
 		cache: null,
 		load: null, // resource manager
 		
