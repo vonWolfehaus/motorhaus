@@ -1,8 +1,10 @@
 /**
  * Global state resources. No idea why I called it 'Kai'.
  */
-define(['require', 'utils/DebugDraw', 'math/Vec2', 'lib/LinkedList'],
+define(['require', 'math/Vec2', 'lib/LinkedList'],
 		function(require) {
+	
+	// var DebugDraw = require('utils/DebugDraw');
 	
 	return {
 		engine: null,

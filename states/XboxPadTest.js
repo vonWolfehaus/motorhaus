@@ -22,24 +22,26 @@ XboxPadTest.prototype = {
 		// Kai.load.image('preloaderBackground', 'images/preloader_background.jpg');
 		// Kai.load.image('preloaderBar', 'images/preloadr_bar.png');
 		
+		// crimson land?
 	},
 
 	create: function () {
 		// console.log('[XboxPadTest.create]');
-		var debugCanvas = document.getElementById('debug');
-		debugCanvas.width = window.innerWidth;
-		debugCanvas.height = window.innerHeight;
-		Kai.debugCtx = debugCanvas.getContext('2d');
+		var canvas = document.getElementById('stage');
+		Kai.renderer = PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight, canvas, true);
+        Kai.stage = new PIXI.Stage();
 		
 		for (var i = 0; i < 4; i++) {
 			this.players[i] = new Player(100 * i + 200, 100 * i + 200, i);
 		}
 		
+		Kai.renderHook = this.draw.bind(this);
+		
 		console.log('[XboxPadTest.create] Running');
 	},
 	
 	padAdded: function(pad) {
-		this.players[pad.id].active = true;
+		this.players[pad.id].reset(100 * pad.id + 200, 100 * pad.id + 200);
 		console.log('[XboxPadTest.padRemoved] Player '+(pad.id+1)+' joined');
 	},
 	
@@ -60,7 +62,7 @@ XboxPadTest.prototype = {
 	},
 	
 	draw: function () {
-		
+		Kai.renderer.render(Kai.stage);
 	},
 	
 	dispose: function() {
