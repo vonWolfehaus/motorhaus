@@ -2,7 +2,7 @@ define(function(require) {
 	
 // imports
 var Kai = require('core/Kai');
-var ComponentDef = require('components/ComponentDef');
+var ComponentType = require('components/ComponentDef');
 var MathTools = require('math/MathTools');
 
 // constructor
@@ -17,7 +17,7 @@ var Thing = function(posx, posy) {
 	this.velocity = new Vec2(MathTools.random(this.speed), MathTools.random(this.speed));
 	
 	// complex components
-	Kai.addComponent(this, ComponentDef.THING, {foo:2});
+	Kai.addComponent(this, ComponentType.THING, {foo:2});
 	
 	console.log(this.componentThing);
 };
@@ -34,7 +34,7 @@ Thing.prototype = {
 		// remove signal callbacks
 		
 		// dispose components
-		Kai.removeComponent(this, ComponentDef.THING);
+		Kai.removeComponent(this, ComponentType.THING);
 		
 		// null references
 		this.position = null;

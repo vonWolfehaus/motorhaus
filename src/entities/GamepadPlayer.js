@@ -2,40 +2,74 @@ define(function(require) {
 	
 // imports
 var Kai = require('core/Kai');
-var ComponentDef = require('components/ComponentDef');
-// var MathTools = require('math/MathTools');
+var ComponentType = require('components/ComponentDef');
+var MathTools = require('math/MathTools');
+var World = require('entities/World');
+
+var Turret = require('entities/Turret');
 
 // constructor
 var GamepadPlayer = function(posx, posy, padId) {
 	require('core/Base').call(this);
 	
-	var texture = PIXI.Texture.fromImage('../img/beetle.png');
-
+	var img = Kai.cache.getImage('players');
+	var radius = Math.floor(img.height / 2);
+	var diameter = radius * 2;
+	
 	// attributes
 	this.id = padId;
 	this.pad = Kai.pads.controllers[padId];
-	this.speed = 5;
+	this.fireRate = 130;
 	
 	// base components
 	this.position = new Vec2(posx, posy);
 	this.velocity = new Vec2();
 	this.accel = new Vec2();
-	this.rotation = this.pad.rightAxis;
-	
+	this.rotation = new Vec2();
 	
 	// complex components
-	// Kai.addComponent(this, ComponentDef.THING, {foo:2});
-	this.sprite = new PIXI.Sprite(texture);
-	this.sprite.anchor.x = 0.5;
-	this.sprite.anchor.y = 0.5;
-	this.sprite.visible = true;
-	Kai.stage.addChild(this.sprite);
+	Kai.addComponent(this, ComponentType.TIMER, {
+		interval: this.fireRate,
+		immediateDispatch: true
+	});
+	Kai.addComponent(this, ComponentType.BODY_RADIAL_COLLIDER2, {
+		mass: 20,
+		radius: radius,
+		maxSpeed: 300,
+		hasAccel: true,
+		hasFriction: true,
+		collisionId: this.uniqueId
+	});
+	Kai.addComponent(this, ComponentType.HEALTH, {
+		max: 200
+	});
+	Kai.addComponent(this, ComponentType.INPUT_TWINSTICK, {
+		pad: this.pad, 
+		speed: 100
+	});
+	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
+		image: img,
+		width: diameter,
+		height: diameter
+	});
 	
-	// link
-	this.sprite.position = this.position;
+	// unique component configuration
+	this.view.configure({
+		regX: radius,
+		regY: radius,
+		sourceRect: new createjs.Rectangle(this.id*diameter, 0, diameter, diameter)
+	});
 	
+	// other entities
+	this.turret = new Turret(this);
+	
+	// signals
+	this.health.onDeath.add(this._uponDeath, this);
 	this.pad.onDown.add(this._btnDown, this);
 	this.pad.onUp.add(this._btnUp, this);
+	this.timer.onInterval.add(this._timeToDance, this);
+	
+	this.disable();
 };
 
 
@@ -46,33 +80,27 @@ GamepadPlayer.prototype = {
 									PUBLIC
 	-------------------------------------------------------------------------------*/
 	
-	reset: function(x, y) {
-		this.active = true;
+	activate: function(x, y) {
 		this.position.x = x;
 		this.position.y = y;
-		console.log('Player is active');
+		this.active = true;
+
+		this.view.activate();
+		this.body.activate();
+		this.health.activate();
+		this.input.activate();
+		this.turret.activate();
+		// console.log('Player is active');
 	},
 	
-	update: function() {
-		if (this.pad.isDown(XBOX.X)) {
-			// console.log(this.pad.rightAxis);
-		}
+	disable: function() {
+		this.active = false;
+		this.body.solid = false;
 		
-		if (this.pad.isDown(XBOX.RT)) {
-			// console.log(this.pad.rightTrigger);
-		}
-		
-		this.velocity.copy(this.pad.leftAxis).multiplyScalar(this.speed);
-		this.position.add(this.velocity);
-		
-		if (this.rotation.y !== 0 || this.rotation.x !== 0) {
-			this.sprite.rotation = Math.atan2(this.rotation.y, this.rotation.x);
-		}
-		
-		if (this.position.x > window.innerWidth) this.position.x = window.innerWidth;
-		if (this.position.x < 0) this.position.x = 0;
-		if (this.position.y > window.innerHeight) this.position.y = window.innerHeight;
-		if (this.position.y < 0) this.position.y = 0;
+		this.velocity.reset();
+		this.view.disable();
+		this.turret.disable();
+		this.timer.disable();
 	},
 	
 	dispose: function() {
@@ -81,7 +109,10 @@ GamepadPlayer.prototype = {
 		this.pad.onUp.remove(this._btnUp, this);
 		
 		// dispose components
-		// Kai.removeComponent(this, ComponentDef.THING);
+		Kai.removeComponent(this, ComponentType.BODY_RADIAL_COLLIDER2);
+		Kai.removeComponent(this, ComponentType.HEALTH);
+		Kai.removeComponent(this, ComponentType.INPUT_TWINSTICK);
+		Kai.removeComponent(this, ComponentType.EASEL_BITMAP);
 		
 		// null references
 		this.position = null;
@@ -93,25 +124,61 @@ GamepadPlayer.prototype = {
 									PRIVATE: EVENTS
 	-------------------------------------------------------------------------------*/
 	
+	_timeToDance: function() {
+		if (this.pad.isDown(XBOX.LT) || this.pad.isDown(XBOX.RT)) {
+			this.turret.fire();
+		}
+	},
+	
+	_uponDeath: function(amount) {
+		this.disable();
+		// TODO: special effects
+	},
+	
 	_btnDown: function(btn, val) {
+		if (!this.active) return;
 		// console.log(this.pad.buttons[btn]);
 		switch (btn) {
 			case XBOX.A:
 				// console.log('Player '+this.id+': A is down: '+val);
 				break;
-			case XBOX.RT:
-				// console.log('Player '+this.id+': right trigger is down: '+val);
+			
+			// BUY MINIONS
+			case XBOX.LB:
+			// case XBOX.RB:
+				// DEV HACKS BRO
+				var centerX = World.width / 2;
+				var centerY = World.height / 2;
+				this.activate(MathTools.random(100) + centerX, MathTools.random(100) + centerY);
 				break;
+			
+			case XBOX.LT:
+			case XBOX.RT:
+				this.timer.activate();
+				break;
+				
+			// MINION CONTROL
 			case XBOX.DOWN:
-				// console.log('down');
+				// wander
+				break;
+			case XBOX.UP:
+				// follow
+				break;
+			case XBOX.LEFT:
+				// seek and harass other players
+				break;
+			case XBOX.RIGHT:
+				// patrol between plates
 				break;
 		}
 	},
 	
 	_btnUp: function(btn, val) {
+		if (!this.active) return;
 		switch (btn) {
-			case XBOX.A:
-				// console.log('Player '+this.id+': A is up: '+val);
+			case XBOX.LT:
+			case XBOX.RT:
+				this.timer.disable();
 				break;
 		}
 	}

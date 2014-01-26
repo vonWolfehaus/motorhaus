@@ -16,7 +16,7 @@ var OCANCircle = function(entity, settings) {
 	Tools.merge(this, settings);
 	
 	// private properties
-	this._entity = entity;
+	this.entity = entity;
 	this._display = Kai.view.display.arc({
 		x: entity.position.x,
 		y: entity.position.y,
@@ -42,7 +42,7 @@ OCANCircle.priority = 10; // general position in the engine's component array; h
 OCANCircle.prototype = {
 	constructor: OCANCircle,
 	
-	reset: function() {
+	activate: function() {
 		this.active = true;
 	},
 	
@@ -55,7 +55,7 @@ OCANCircle.prototype = {
 		Kai.view.removeChild(this._display);
 		
 		// null references
-		this._entity = null;
+		this.entity = null;
 		this.position = null;
 		this._display = null;
 	}

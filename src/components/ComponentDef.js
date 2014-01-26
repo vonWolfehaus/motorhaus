@@ -15,7 +15,13 @@ define(['components/graphics/OCAN.Square',
 	'components/graphics/OCAN.Circle',
 	'components/physics/RadialCollider2',
 	'components/graphics/THREE.Cube',
-	'components/physics/AABB3'],
+	'components/physics/AABB3',
+	'components/physics/CollisionGridScanner',
+	'components/Health',
+	'components/graphics/EASELBitmap',
+	'components/input/TwinStickMovement',
+	'components/Timer',
+	],
 	
 	function() {
 	

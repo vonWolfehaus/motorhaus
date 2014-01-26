@@ -1,7 +1,7 @@
 define(function(require) {
 	
 // imports
-// var Tools = require('utils/Tools');
+var Kai = require('core/Kai');
 
 // constructor
 var XboxGamepad = function(id) {
@@ -18,13 +18,15 @@ var XboxGamepad = function(id) {
 	this.leftTrigger = 0;
 	this.rightTrigger = 0;
 	
-	// xbox controllers are sticky and don't zero well
-	this.axisTolerance = 0.08;
+	// xbox controllers are sticky and don't zero well apparently
+	this.axisTolerance = 0.12;
+	
 	
 	this.controller = null;
 	this.buttons = null;
 	
 	this._numButtons = 0;
+	this._mozAxisOffset = 0;
 	this._prevButtons = [];
 };
 
@@ -35,8 +37,14 @@ XboxGamepad.prototype = {
 		this.setPad(ctrlr);
 		this._numButtons = this.buttons.length;
 		
+		if (!!navigator.webkitGetGamepads) {
+			this._mozAxisOffset = 0;
+		} else {
+			this._mozAxisOffset = 1;
+		}
+		
 		this.active = true;
-		this.reset();
+		this.activate();
 		// console.log('[XboxGamepad.register] CONNECTED '+this.id);
 		// console.log(this.buttons);
 	},
@@ -52,16 +60,19 @@ XboxGamepad.prototype = {
 		this._numButtons = 0;
 		
 		this.active = false;
-		this.reset();
+		this.activate();
 		// console.log('[XboxGamepad.unregister] DISCONNECTED '+this.id);
 	},
 	
 	update: function() {
+		if (Kai.inputBlocked) {
+			return;
+		}
 		var i, btn;
 		var leftX = this.controller.axes[0];
 		var leftY = this.controller.axes[1];
-		var rightX = this.controller.axes[2];
-		var rightY = this.controller.axes[3];
+		var rightX = this.controller.axes[2+this._mozAxisOffset];
+		var rightY = this.controller.axes[3+this._mozAxisOffset];
 		
 		if (leftX < this.axisTolerance && leftX > -this.axisTolerance) { leftX = 0; }
 		if (leftY < this.axisTolerance && leftY > -this.axisTolerance) { leftY = 0; }
@@ -94,10 +105,13 @@ XboxGamepad.prototype = {
 	},
 	
 	isDown: function(btn) {
+		if (Kai.inputBlocked) {
+			return false;
+		}
 		return !!this.buttons[btn];
 	},
 	
-	reset: function() {
+	activate: function() {
 		this.leftAxis.x = 0;
 		this.leftAxis.y = 0;
 		this.rightAxis.x = 0;

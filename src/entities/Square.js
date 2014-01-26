@@ -36,7 +36,7 @@ Square.prototype = {
 									PUBLIC
 	-------------------------------------------------------------------------------*/
 	
-	reset: function() {
+	activate: function() {
 		this.view.active = true;
 		this.body.active = true;
 	},

@@ -15,23 +15,27 @@ var ComponentThing = function(entity, settings) {
 	Tools.merge(this, settings);
 	
 	// private properties
-	this._entity = entity;
+	this.entity = entity;
 	
 	// prerequisite components
 	this.position = entity.position;
 };
 
 // required statics for component system
-ComponentThing.accessor = 'componentThing'; // property name as it sits on an entity
-ComponentThing.className = 'THING'; // name of component on the ComponenDef object
+ComponentThing.accessor = 'thing'; // property name as it sits on an entity
+ComponentThing.className = 'THING_COMPONENT'; // name of component on the ComponenDef object
 ComponentThing.priority = 10; // general position in the engine's component array; highest updated first
 
 
 ComponentThing.prototype = {
 	constructor: ComponentThing,
 	
-	reset: function() {
-		
+	activate: function() {
+		this.active = true;
+	},
+	
+	disable: function() {
+		this.active = false;
 	},
 	
 	update: function() {
@@ -42,7 +46,7 @@ ComponentThing.prototype = {
 		// remove signal callbacks
 		
 		// null references
-		this._entity = null;
+		this.entity = null;
 		this.position = null;
 	}
 };

@@ -17,7 +17,7 @@ var OCANSquare = function(entity, settings) {
 	Tools.merge(this, settings);
 	
 	// private properties
-	this._entity = entity;
+	this.entity = entity;
 	this._display = Kai.view.display.rectangle({
 		x: entity.position.x,
 		y: entity.position.y,
@@ -45,7 +45,7 @@ OCANSquare.priority = 10; // general position in the engine's component array; h
 OCANSquare.prototype = {
 	constructor: OCANSquare,
 	
-	reset: function() {
+	activate: function() {
 		
 	},
 	
@@ -58,7 +58,7 @@ OCANSquare.prototype = {
 		Kai.view.removeChild(this._display);
 		
 		// null references
-		this._entity = null;
+		this.entity = null;
 		this.position = null;
 		this._display = null;
 	}

@@ -287,7 +287,7 @@ var LinkedList = function() {
 		this.length = 0;
 	};
 	
-	this.destroy = function() {
+	this.dispose = function() {
 		var next = this.first;
 		
 		while (next) {

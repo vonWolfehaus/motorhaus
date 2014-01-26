@@ -14,27 +14,38 @@ var RadialColider2 = function(entity, settings) {
 	this.mass = 100; // 0 is immobile
 	this.invmass = 0; // never adjust this directly! use setMass() instead
 	this.restitution = 0.8; // bounciness, 0 to 1
+	this.maxSpeed = 200;
 	this.solid = true;
+	this.hasAccel = false;
+	this.hasFriction = false;
+	this.autoAdd = true;
+	this.collisionId = this.uniqueId;
 	
 	// attribute override
 	Tools.merge(this, settings);
 	
-	// this.collisionSignal = new Signal();
+	this.onCollision = new Signal();
 	
 	// private properties
-	this._entity = entity;
+	this.entity = entity;
 	
 	// prerequisite components
 	this.position = entity.position;
 	this.velocity = entity.velocity;
+	if (this.hasAccel) {
+		this.accel = entity.accel;
+	}
 	
 	// init
 	this.setMass(this.mass);
+	if (this.autoAdd) {
+		World.broadphase.add(this);
+	}
 };
 
 // required statics for component system
 RadialColider2.accessor = 'body'; // property name as it sits on an entity
-RadialColider2.className = 'RADIAL_COLLIDER2'; // name of component on the ComponenDef object
+RadialColider2.className = 'BODY_RADIAL_COLLIDER2'; // name of component on the ComponenDef object
 RadialColider2.priority = 1; // general position in the engine's component array; lowest updated first
 
 
@@ -50,15 +61,29 @@ RadialColider2.prototype = {
 		}
 	},
 	
-	reset: function() {
-		this.setMass(this.mass); // make sure invmass is set
+	activate: function() {
+		this.solid = true;
+		this.active = true;
+	},
+	
+	disable: function() {
+		this.solid = false;
+		this.active = false;
 	},
 	
 	update: function() {
 		this.velocity.y += World.gravity * World.elapsed;
 		
-		// this.velocity.x *= World.friction;
-		// this.velocity.y *= World.friction;
+		if (this.hasAccel) {
+			this.velocity.x += this.accel.x;
+			this.velocity.y += this.accel.y;
+			this.velocity.truncate(this.maxSpeed);
+		}
+		
+		if (this.hasFriction) {
+			this.velocity.x *= World.friction;
+			this.velocity.y *= World.friction;
+		}
 		
 		this.position.x += this.velocity.x * World.elapsed;
 		this.position.y += this.velocity.y * World.elapsed;
@@ -81,16 +106,18 @@ RadialColider2.prototype = {
 			this.velocity.y = -this.velocity.y * this.restitution;
 		}
 		
-		// DebugDraw.circle(this.position.x, this.position.y, this.radius);
+		DebugDraw.circle(this.position.x, this.position.y, this.radius);
 	},
 	
 	dispose: function() {
 		// remove signal callbacks
+		this.onCollision.dispose();
 		
 		// null references
-		this._entity = null;
+		this.entity = null;
 		this.position = null;
 		this.velocity = null;
+		this.onCollision = null;
 	}
 };
 

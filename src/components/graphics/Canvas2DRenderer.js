@@ -59,7 +59,7 @@ var Canvas2DRenderer = function(canvasId, width, height) {
 Canvas2DRenderer.prototype = {
 	constructor: Canvas2DRenderer,
 	
-	reset: function() {
+	activate: function() {
 		this.ctx = this.canvas.getContext('2d');
 	},
 	

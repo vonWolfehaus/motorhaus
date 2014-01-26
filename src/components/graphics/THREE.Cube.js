@@ -19,7 +19,7 @@ var THREECube = function(entity, settings) {
 	Tools.merge(this, settings);
 	
 	// private properties
-	this._entity = entity;
+	this.entity = entity;
 	this._display = null;
 	
 	// NEVER do this in production! geo and materials should be cached!
@@ -56,7 +56,7 @@ THREECube.priority = 10; // general position in the engine's component array; hi
 THREECube.prototype = {
 	constructor: THREECube,
 	
-	reset: function() {
+	activate: function() {
 		
 	},
 	
@@ -70,7 +70,7 @@ THREECube.prototype = {
 		Kai.view.remove(this._display);
 		
 		// null references
-		this._entity = null;
+		this.entity = null;
 		this.position = null;
 		this._display = null;
 	}

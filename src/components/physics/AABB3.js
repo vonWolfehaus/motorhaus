@@ -23,7 +23,7 @@ var AABB3 = function(entity, settings) {
 	Tools.merge(this, settings);
 	
 	// private properties
-	this._entity = entity;
+	this.entity = entity;
 	this._halfWidth = this.width / 2;
 	this._halfHeight = this.height / 2;
 	this._halfDepth = this.depth / 2;
@@ -60,7 +60,7 @@ AABB3.prototype = {
 		}
 	},
 	
-	reset: function() {
+	activate: function() {
 		this.setMass(this.mass); // make sure invmass is set
 	},
 	
@@ -106,7 +106,7 @@ AABB3.prototype = {
 		// remove signal callbacks
 		
 		// null references
-		this._entity = null;
+		this.entity = null;
 		this.position = null;
 		this.velocity = null;
 	}

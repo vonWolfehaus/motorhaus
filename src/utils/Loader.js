@@ -488,7 +488,7 @@ Loader.prototype = {
 		if (this.totalQueuedFiles() > 0)
 		{
 			this._fileIndex++;
-			this.loadFile();
+			this._loadFile();
 		}
 		else
 		{

@@ -48,7 +48,7 @@ Engine.prototype = {
 		if (Kai.ready) {
 			return;
 		}
-
+		var self = this;
 		if (!document.body) {
 			window.setTimeout(this._onInit, 20);
 			return;
@@ -57,6 +57,15 @@ Engine.prototype = {
 		console.log('[Engine.init] Ready');
 		document.removeEventListener('DOMContentLoaded', this._onInit);
 		window.removeEventListener('load', this._onInit);
+		
+		window.addEventListener('focus', function(evt) {
+			self._paused = false;
+			// console.log('window has focus');
+		}, false);
+		window.addEventListener('blur', function(evt) {
+			self._paused = true;
+			// console.log('window lost focus');
+		}, false);
 		
 		// init global components
 		Kai.engine = this;

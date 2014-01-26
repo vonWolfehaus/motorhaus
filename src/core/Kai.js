@@ -10,8 +10,7 @@ define(['require', 'math/Vec2', 'lib/LinkedList'],
 		engine: null,
 		view: null, // the graphics manager (threejs, pixi, etc..)
 		renderHook: null, // function that gets called to execute drawing once a tick
-		grid: null, // collision manager
-		map: null, // current game world
+		world: null,
 		
 		mouse: null,
 		keys: null,
@@ -23,7 +22,7 @@ define(['require', 'math/Vec2', 'lib/LinkedList'],
 		
 		components: [],
 		
-		width: 0, // canvas/view dimensions (in pixels); renderer or state is supposed to set this
+		width: 0, // screen size (in pixels); renderer or state is supposed to set this
 		height: 0,
 		
 		ready: false, // true when all systems are go

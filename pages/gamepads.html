@@ -26,9 +26,10 @@
 <body>
 
 <canvas id="stage"></canvas>
+<canvas id="debug"></canvas>
 
 
-<script type="text/javascript" src="../src/lib/pixi.js"></script>
+<script type="text/javascript" src="../src/lib/easeljs-0.7.1.min.js"></script>
 <script type="text/javascript" src="../src/lib/require.js"></script>
 <script type="text/javascript">
 // --allow-file-access --allow-file-access-from-files --disable-web-security --allow-running-insecure-content --allow-sandbox-debugging --incognito --enable-extension-timeline-api
@@ -38,7 +39,6 @@ require.config({
 });
 require(['core/Engine', '../states/XboxPadTest'],
 function(Engine, XboxPadTest) {
-	
 	
 	var engine = new Engine();
 	

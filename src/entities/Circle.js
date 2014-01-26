@@ -23,7 +23,7 @@ var Circle = function(posx, posy) {
 	
 	// complex components
 	Kai.addComponent(this, ComponentDef.OCAN_CIRCLE, sharedAttr); // view
-	Kai.addComponent(this, ComponentDef.RADIAL_COLLIDER2, sharedAttr); // body
+	Kai.addComponent(this, ComponentDef.BODY_RADIAL_COLLIDER2, sharedAttr); // body
 	
 };
 
@@ -35,7 +35,7 @@ Circle.prototype = {
 									PUBLIC
 	-------------------------------------------------------------------------------*/
 	
-	reset: function() {
+	activate: function() {
 		this.view.active = true;
 		this.body.active = true;
 	},
@@ -45,7 +45,7 @@ Circle.prototype = {
 		
 		// dispose components
 		Kai.removeComponent(this, ComponentDef.OCAN_CIRCLE);
-		Kai.removeComponent(this, ComponentDef.RADIAL_COLLIDER2);
+		Kai.removeComponent(this, ComponentDef.BODY_RADIAL_COLLIDER2);
 		
 		// null references
 		this.position = null;

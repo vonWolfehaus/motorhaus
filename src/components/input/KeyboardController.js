@@ -87,9 +87,9 @@ KeyboardController.prototype = {
 	
 	/**
 	 * Reset the "isDown" state of all keys.
-	 * @method Phaser.Keyboard#reset
+	 * @method Phaser.Keyboard#activate
 	 */
-	reset: function() {
+	activate: function() {
 		for (var key in this._keys) {
 			this._keys[key].isDown = false;
 		}

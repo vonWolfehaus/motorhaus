@@ -1,64 +1,99 @@
-define(function() {
-/**
- * Controls an entities lifespan.
- * 
- * @author Corey Birnbaum
- */
-return function Health(m, o) {
-	this.max = m || 100;
-	this.overage = o || 0;
+define(function(require) {
 	
+// imports
+var Tools = require('utils/Tools');
+
+// constructor
+var Health = function(entity, settings) {
+	// augment with Base
+	require('core/Base').call(this);
+	
+	// attributes
+	this.max = 100;
+	this.overage = 0;
 	this.alive = false;
 	
-	this.deathSignal = new Signal();
-	this.damageSignal = new Signal();
-	this.healSignal = new Signal();
-	this.fullSignal = new Signal();
+	// attribute override
+	Tools.merge(this, settings);
 	
-	// current health amount. it's private because you must only change it through the functions
-	var _meter = 0;
+	this.onDeath = new Signal();
+	this.onDamage = new Signal();
+	this.onHeal = new Signal();
+	this.onFull = new Signal();
 	
-	this.reset = function() {
-		_meter = this.max;
+	// private properties
+	this.entity = entity;
+	this._meter = 0;
+};
+
+// required statics for component system
+Health.accessor = 'health'; // property name as it sits on an entity
+Health.className = 'HEALTH'; // name of component on the ComponenDef object
+Health.priority = 1; // general position in the engine's component array; highest updated first
+
+
+Health.prototype = {
+	constructor: Health,
+	
+	activate: function() {
+		this._meter = this.max;
 		this.alive = true;
-	};
+	},
 	
-	this.change = function(amount) {
-		_meter += amount;
+	change: function(amount) {
+		if (!this.alive) return 0;
 		
-		if (_meter <= 0) {
-			_meter = 0;
+		this._meter += amount;
+		
+		if (this._meter <= 0) {
+			this._meter = 0;
 			this.alive = false;
 			
-			deathSignal.dispatch(amount);
+			this.onDeath.dispatch(amount);
 		} else {
-			if (_meter > this.max + this.overage) {
-				_meter = this.max;
+			if (this._meter > this.max + this.overage) {
+				this._meter = this.max;
 				
-				fullSignal.dispatch(amount);
+				this.onFull.dispatch(amount);
 			}
 			
-			if (amount < 0) damageSignal.dispatch(amount);
-			else healSignal.dispatch(amount);
+			if (amount < 0) this.onDamage.dispatch(amount);
+			else this.onHeal.dispatch(amount);
 		}
 		
-		return _meter;
-	};
+		return this._meter;
+	},
 	
-	/**
-	 * Deplete any overage health safely.
-	 */
-	this.drain = function(amount) {
-		if (_meter > this.max) {
-			_meter -= amount;
-			if (_meter <= this.max) {
-				_meter = this.max;
+	drain: function(amount) {
+		if (!this.alive) return 0;
+		
+		if (this._meter > this.max) {
+			this._meter -= amount;
+			if (this._meter <= this.max) {
+				this._meter = this.max;
 				
-				fullSignal.dispatch(amount);
+				this.onFull.dispatch(amount);
 			}
 		}
-		return _meter;
-	};
-} // class
+		return this._meter;
+	},
+	
+	dispose: function() {
+		// remove signal callbacks
+		this.onDeath.dispose();
+		this.onDamage.dispose();
+		this.onHeal.dispose();
+		this.onFull.dispose();
+		
+		// null references
+		this.entity = null;
+		this.deathSignal = null;
+		this.onDamage = null;
+		this.onHeal = null;
+		this.onFull = null;
+	}
+};
+
+return Health;
 
 });

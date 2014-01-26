@@ -21,8 +21,8 @@ var GamepadController = function() {
 		this._controllerStatus[i] = false;
 	}
 	
-	window.addEventListener('gamepadconnected', this._onConnect.bind(this));
-	window.addEventListener('gamepaddisconnected', this._onDisconnect.bind(this));
+	window.addEventListener('gamepadconnected', this._onConnect.bind(this), false);
+	window.addEventListener('gamepaddisconnected', this._onDisconnect.bind(this), false);
 };
 
 GamepadController.prototype = {
@@ -33,6 +33,7 @@ GamepadController.prototype = {
 		ctrl.register(gamepad);
 		this.onConnect.dispatch(ctrl);
 		this.activeControllers++;
+		// console.log('addPad');
 	},
 	
 	_removePad: function(gamepad) {
@@ -40,6 +41,7 @@ GamepadController.prototype = {
 		ctrl.unregister();
 		this.onDisconnect.dispatch(ctrl);
 		this.activeControllers--;
+		// console.log('removePad');
 	},
 	
 	_onConnect: function(evt) {
@@ -55,7 +57,7 @@ GamepadController.prototype = {
 		for (i = 0; i < gamepads.length; i++) {
 			if (gamepads[i]) {
 				if (this._controllerStatus[i]) {
-					// this is fucking pathetic, we should be getting live objects!
+					// this is fucking pathetic, we should be getting live references!
 					this.controllers[i].setPad(gamepads[i]);
 				} else {
 					this._addPad(gamepads[i]);
@@ -72,7 +74,7 @@ GamepadController.prototype = {
 	update: function() {
 		var i, ctrl;
 		if (navigator.webkitGetGamepads) {
-			this._scan();
+			this._scan(); // this should not be necessary!
 		}
 		for (i = 0; i < 4; i++) {
 			ctrl = this.controllers[i];
@@ -82,7 +84,7 @@ GamepadController.prototype = {
 		}
 	},
 	
-	reset: function() {
+	activate: function() {
 		
 	},
 	
