@@ -12,6 +12,7 @@ var Health = function(entity, settings) {
 	this.max = 100;
 	this.overage = 0;
 	this.alive = false;
+	this.active = false; // this component doesn't need to be updated
 	
 	// attribute override
 	Tools.merge(this, settings);
@@ -20,6 +21,7 @@ var Health = function(entity, settings) {
 	this.onDamage = new Signal();
 	this.onHeal = new Signal();
 	this.onFull = new Signal();
+	this.onActivate = new Signal();
 	
 	// private properties
 	this.entity = entity;
@@ -38,6 +40,7 @@ Health.prototype = {
 	activate: function() {
 		this._meter = this.max;
 		this.alive = true;
+		this.onActivate.dispatch(this.entity);
 	},
 	
 	change: function(amount) {

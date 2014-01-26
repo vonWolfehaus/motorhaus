@@ -9,13 +9,12 @@ var DOMTools = require('utils/DOMTools');
 var DebugDraw = require('utils/DebugDraw');
 
 var Player = require('entities/GamepadPlayer');
+var LocalPlayManager = require('utils/LocalPlayManager');
 
 
 var DemoArenaShooter = function() {
-	Kai.pads = new GamepadController();
-	
+	this.playManager = null;
 	this.players = [];
-	this.things = [];
 };
 
 DemoArenaShooter.prototype = {
@@ -25,13 +24,14 @@ DemoArenaShooter.prototype = {
 		Kai.load.image('players', '../img/players.png');
 		Kai.load.image('bullet', '../img/bullet.png');
 		Kai.load.image('tileset', '../img/hex_tiles_b0rked.png');
-		Kai.load.image('tileset', '../img/minions.png');
+		Kai.load.image('minions', '../img/minions.png');
 		
 		// crimson land?
 	},
 
 	create: function () {
 		// console.log('[DemoArenaShooter.create]');
+		Kai.pads = new GamepadController();
 		Kai.pads.onConnect.add(this.padAdded, this);
 		Kai.pads.onDisconnect.add(this.padRemoved, this);
 		
@@ -49,9 +49,14 @@ DemoArenaShooter.prototype = {
 		
 		Kai.stage = new createjs.Stage(canvas);
 		
+		this.playManager = new LocalPlayManager();
+		
 		for (var i = 0; i < 4; i++) {
 			this.players[i] = new Player(100 * i + 200, 100 * i + 200, i);
 		}
+		
+		// set manager up with the entities that hold health components
+		// this.playManager.trackEntities(this.players);
 		
 		Kai.renderHook = this.draw.bind(this);
 		
@@ -66,7 +71,7 @@ DemoArenaShooter.prototype = {
 	
 	padAdded: function(pad) {
 		this.players[pad.id].activate(100 * pad.id + 200, 100 * pad.id + 200);
-		console.log('[DemoArenaShooter.padRemoved] Player '+(pad.id+1)+' joined');
+		console.log('[DemoArenaShooter.padAdded] Player '+(pad.id+1)+' joined');
 	},
 	
 	padRemoved: function(pad) {
@@ -75,7 +80,9 @@ DemoArenaShooter.prototype = {
 	},
 	
 	update: function () {
-		Kai.pads.update();
+		if (!Kai.inputBlocked) {
+			Kai.pads.update();
+		}
 		
 		World.broadphase.update();
 		// World.map.update();
@@ -86,13 +93,12 @@ DemoArenaShooter.prototype = {
 	},
 	
 	dispose: function() {
-		Kai.pads.onConnect.remove(this.padAdded, this);
-		Kai.pads.onDisconnect.remove(this.padRemoved, this);
 		Kai.pads.dispose();
+		
 		for (var i = 0; i < this.things.length; i++) {
-			this.things[i].dispose();
+			this.players[i].dispose();
 		}
-		this.things = null;
+		this.players.length = 0;
 	}
 };
 

@@ -28,9 +28,33 @@ var GamepadController = function() {
 GamepadController.prototype = {
 	constructor: GamepadController,
 	
+	update: function() {
+		var i, ctrl;
+		if (navigator.webkitGetGamepads) {
+			this._scan(); // this should not be necessary!
+		}
+		for (i = 0; i < 4; i++) {
+			ctrl = this.controllers[i];
+			if (ctrl.active) {
+				ctrl.update();
+			}
+		}
+	},
+	
+	dispose: function() {
+		// null references
+		this.controllers = null;
+		this.onConnect.dispose();
+		this.onDisconnect.dispose();
+		this.onConnect = null;
+		this.onDisconnect = null;
+		this._controllerStatus = null;
+	},
+	
 	_addPad: function(gamepad) {
 		var ctrl = this.controllers[gamepad.index];
 		ctrl.register(gamepad);
+		
 		this.onConnect.dispatch(ctrl);
 		this.activeControllers++;
 		// console.log('addPad');
@@ -39,6 +63,7 @@ GamepadController.prototype = {
 	_removePad: function(gamepad) {
 		var ctrl = gamepad.index ? this.controllers[gamepad.index] : this.controllers[gamepad];
 		ctrl.unregister();
+		
 		this.onDisconnect.dispatch(ctrl);
 		this.activeControllers--;
 		// console.log('removePad');
@@ -69,32 +94,8 @@ GamepadController.prototype = {
 				this._controllerStatus[i] = false;
 			}
 		}
-	},
-	
-	update: function() {
-		var i, ctrl;
-		if (navigator.webkitGetGamepads) {
-			this._scan(); // this should not be necessary!
-		}
-		for (i = 0; i < 4; i++) {
-			ctrl = this.controllers[i];
-			if (ctrl.active) {
-				ctrl.update();
-			}
-		}
-	},
-	
-	activate: function() {
-		
-	},
-	
-	dispose: function() {
-		// null references
-		this.controllers = null;
-		this.onConnect = null;
-		this.onDisconnect = null;
-		this._controllerStatus = null;
 	}
+	
 };
 
 return GamepadController;

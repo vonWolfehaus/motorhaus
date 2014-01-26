@@ -8,7 +8,6 @@ var MathTools = require('math/MathTools');
 // constructor
 var LocalPlayManager = function() {
 	
-	
 	this.scoreboard = [];
 	
 };
@@ -20,6 +19,17 @@ LocalPlayManager.prototype = {
 	/*-------------------------------------------------------------------------------
 									PUBLIC
 	-------------------------------------------------------------------------------*/
+	
+	trackEntities: function(entities) {
+		var i, obj;
+		for (var i = 0; i < entities.length; i++) {
+			obj = entities[i];
+			obj.health.onDeath.add();
+			obj.health.onPlayerRespawn.add();
+			obj.health.onPlayerScore.add();
+		};
+		
+	},
 	
 	dispose: function() {
 		// remove signal callbacks

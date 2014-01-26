@@ -65,9 +65,6 @@ XboxGamepad.prototype = {
 	},
 	
 	update: function() {
-		if (Kai.inputBlocked) {
-			return;
-		}
 		var i, btn;
 		var leftX = this.controller.axes[0];
 		var leftY = this.controller.axes[1];

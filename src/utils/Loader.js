@@ -40,20 +40,15 @@ Loader.prototype = {
 	-------------------------------------------------------------------------------*/
 	
 	image: function (key, url, overwrite) {
-
-		if (typeof overwrite === "undefined") { overwrite = false; }
-
-		if (overwrite)
-		{
+		if (typeof overwrite === 'undefined') { overwrite = false; }
+		
+		if (overwrite) {
 			this._replaceInFileList('image', key, url);
-		}
-		else
-		{
+		} else {
 			this._addToFileList('image', key, url);
 		}
 
 		return this;
-
 	},
 	
 	/**
@@ -68,7 +63,7 @@ Loader.prototype = {
 	 */
 	spritesheet: function (key, url, frameWidth, frameHeight, frameMax) {
 
-		if (typeof frameMax === "undefined") { frameMax = -1; }
+		if (typeof frameMax === 'undefined') { frameMax = -1; }
 
 		this._addToFileList('spritesheet', key, url, { frameWidth: frameWidth, frameHeight: frameHeight, frameMax: frameMax });
 
@@ -85,7 +80,7 @@ Loader.prototype = {
 	 */
 	text: function (key, url, overwrite) {
 
-		if (typeof overwrite === "undefined") { overwrite = false; }
+		if (typeof overwrite === 'undefined') { overwrite = false; }
 
 		if (overwrite)
 		{
@@ -111,7 +106,7 @@ Loader.prototype = {
 	*/
 	audio: function (key, urls, autoDecode) {
 
-		if (typeof autoDecode === "undefined") { autoDecode = true; }
+		if (typeof autoDecode === 'undefined') { autoDecode = true; }
 
 		this.addToFileList('audio', key, urls, { buffer: null, autoDecode: autoDecode });
 
@@ -299,16 +294,16 @@ Loader.prototype = {
 			loaded: false
 		};
 
-		if (typeof properties !== "undefined")
-		{
-			for (var prop in properties)
-			{
+		if (typeof properties !== 'undefined') {
+			for (var prop in properties) {
 				entry[prop] = properties[prop];
 			}
 		}
 
-		if (this.checkKeyExists(type, key) === false)
-		{
+		if (this.checkKeyExists(type, key)) {
+			console.warn('[Loader] "'+key+'" already exists, use overwrite if you want to replace it in cache');
+			
+		} else {
 			this._fileList.push(entry);
 		}
 
@@ -335,7 +330,7 @@ Loader.prototype = {
 			loaded: false
 		};
 
-		if (typeof properties !== "undefined")
+		if (typeof properties !== 'undefined')
 		{
 			for (var prop in properties)
 			{
@@ -396,8 +391,8 @@ Loader.prototype = {
 					//  WebAudio or Audio Tag?
 					if (this.game.sound.usingWebAudio)
 					{
-						this._xhr.open("GET", this.baseURL + file.url, true);
-						this._xhr.responseType = "arraybuffer";
+						this._xhr.open('GET', this.baseURL + file.url, true);
+						this._xhr.responseType = 'arraybuffer';
 						this._xhr.onload = function () {
 							return self._fileComplete(self._fileIndex);
 						};
@@ -439,8 +434,8 @@ Loader.prototype = {
 				break;
 
 			case 'text':
-				this._xhr.open("GET", this.baseURL + file.url, true);
-				this._xhr.responseType = "text";
+				this._xhr.open('GET', this.baseURL + file.url, true);
+				this._xhr.responseType = 'text';
 				this._xhr.onload = function () {
 					return self._fileComplete(self._fileIndex);
 				};
@@ -517,7 +512,7 @@ Loader.prototype = {
 		for (var i = 0; i < urls.length; i++)
 		{
 			extension = urls[i].toLowerCase();
-			extension = extension.substr((Math.max(0, extension.lastIndexOf(".")) || Infinity) + 1);
+			extension = extension.substr((Math.max(0, extension.lastIndexOf('.')) || Infinity) + 1);
 
 			if (this.game.device.canPlayAudio(extension))
 			{
@@ -543,7 +538,7 @@ Loader.prototype = {
 
 		this.on_fileError.dispatch(this._fileList[index].key, this._fileList[index]);
 
-		console.warn("Phaser.Loader error loading file: " + this._fileList[index].key + ' from URL ' + this._fileList[index].url);
+		console.warn('Phaser.Loader error loading file: ' + this._fileList[index].key + ' from URL ' + this._fileList[index].url);
 
 		this._nextFile(index, false);
 
