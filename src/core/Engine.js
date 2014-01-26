@@ -106,6 +106,10 @@ Engine.prototype = {
 			}
 			
 		} else {
+			if (Kai.debugCtx) {
+				Kai.debugCtx.clearRect(0, 0, Kai.width, Kai.height);
+			}
+			
 			// go through each list of components
 			for (i = 0; i < len; i++) {
 				if (!list[i]) continue;

@@ -14,7 +14,6 @@ var DualPool = function(classConstructor, instanceSettings, initSize) {
 	for (var i = 0; i < this.size; i++) {
 		this._freeList.add(new this._Class(this._settings));
 	}
-	// console.log();
 };
 
 
@@ -40,22 +39,25 @@ DualPool.prototype = {
 		return obj;
 	},
 	
-	recycle: function(thing) {
-		if (this._busyList.has(thing)) {
-			obj = this._busyList.pop();
+	recycle: function(obj) {
+		if (this._busyList.has(obj)) {
+			this._busyList.remove(obj);
 			this._freeList.add(obj);
 		
-		} else if (this._freeList.has(thing)) {
-			// it's already been recycled
-		} else {
-			// not in either list? just add it then, whatever
-			this._freeList.add(thing);
-			this.size++;
-		}
+		} /*else {
+			// already in free, or not in either list
+			console.log('[DualPool.recycle] Object ignored');
+		}*/
 	},
 	
 	freeAll: function() {
-		
+		var obj, node = this._busyList.first;
+		while (node) {
+			obj = node.obj;
+			this._busyList.remove(obj);
+			this._freeList.add(obj);
+			node = node.next;
+		}
 	},
 	
 	dispose: function() {
@@ -64,7 +66,12 @@ DualPool.prototype = {
 		this._freeList = null;
 		this._busyList = null;
 		this._Class = null;
+		this._settings = null;
 	},
+	
+	toString: function() {
+		return '[DualPool size: '+this.size+', free: '+this._freeList.length+', busy: '+this._busyList.length+']';
+	}
 	
 	/*-------------------------------------------------------------------------------
 									PRIVATE

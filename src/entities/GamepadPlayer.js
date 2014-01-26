@@ -84,6 +84,7 @@ GamepadPlayer.prototype = {
 		this.position.x = x;
 		this.position.y = y;
 		this.active = true;
+		// this.body.active = true;
 
 		this.view.activate();
 		this.body.activate();
@@ -95,9 +96,10 @@ GamepadPlayer.prototype = {
 	
 	disable: function() {
 		this.active = false;
-		this.body.solid = false;
 		
 		this.velocity.reset();
+		this.accel.reset();
+		this.body.disable();
 		this.view.disable();
 		this.turret.disable();
 		this.timer.disable();
@@ -112,7 +114,8 @@ GamepadPlayer.prototype = {
 		Kai.removeComponent(this, ComponentType.BODY_RADIAL_COLLIDER2);
 		Kai.removeComponent(this, ComponentType.HEALTH);
 		Kai.removeComponent(this, ComponentType.INPUT_TWINSTICK);
-		Kai.removeComponent(this, ComponentType.EASEL_BITMAP);
+		Kai.removeComponent(this, ComponentType.VIEW_EASEL_BITMAP);
+		Kai.removeComponent(this, ComponentType.TIMER);
 		
 		// null references
 		this.position = null;
@@ -136,20 +139,25 @@ GamepadPlayer.prototype = {
 	},
 	
 	_btnDown: function(btn, val) {
-		if (!this.active) return;
+		if (!this.active) {
+			if (btn === XBOX.START) {
+				var centerX = World.width / 2;
+				var centerY = World.height / 2;
+				this.activate(MathTools.random(100) + centerX, MathTools.random(100) + centerY);
+			}
+			return;
+		}
 		// console.log(this.pad.buttons[btn]);
 		switch (btn) {
 			case XBOX.A:
 				// console.log('Player '+this.id+': A is down: '+val);
+				// console.log(this.turret._pool.toString());
 				break;
 			
 			// BUY MINIONS
 			case XBOX.LB:
-			// case XBOX.RB:
-				// DEV HACKS BRO
-				var centerX = World.width / 2;
-				var centerY = World.height / 2;
-				this.activate(MathTools.random(100) + centerX, MathTools.random(100) + centerY);
+			case XBOX.RB:
+				
 				break;
 			
 			case XBOX.LT:

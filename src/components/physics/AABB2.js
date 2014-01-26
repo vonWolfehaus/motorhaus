@@ -43,7 +43,7 @@ var AABB2 = function(entity, settings) {
 
 // required statics for component system
 AABB2.accessor = 'body'; // property name as it sits on an entity
-AABB2.className = 'AABB2'; // name of component on the ComponenDef object
+AABB2.className = 'BODY_AABB2'; // name of component on the ComponenDef object
 AABB2.priority = 1; // general position in the engine's component array; lowest updated first
 
 

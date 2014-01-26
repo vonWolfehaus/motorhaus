@@ -44,7 +44,7 @@ var AABB3 = function(entity, settings) {
 
 // required statics for component system
 AABB3.accessor = 'body'; // property name as it sits on an entity
-AABB3.className = 'AABB3'; // name of component on the ComponenDef object
+AABB3.className = 'BODY_AABB3'; // name of component on the ComponenDef object
 AABB3.priority = 1; // general position in the engine's component array; lowest updated first
 
 

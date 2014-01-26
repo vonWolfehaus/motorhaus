@@ -1,6 +1,7 @@
 define(function(require) {
 
 var World = require('entities/World');
+var Physics = require('physics/Physics2');
 
 /**
  * I'll update this to the new format later. Good god look at all those private variables D:
@@ -71,9 +72,9 @@ return function CollisionGrid(cellSize) {
 							continue;
 						}
 						
-						m = this.collideBalls(item, other); // separates
+						m = Physics.separateCircleVsCircle(item, other);
 						if (m) {
-							this.resolveCollision(item, other, m); // reacts
+							Physics.resolve(item, other, m);
 							item.onCollision.dispatch(other, m);
 							other.onCollision.dispatch(item, m);
 						}
@@ -103,83 +104,11 @@ return function CollisionGrid(cellSize) {
 	};
 	
 	this.add = function(obj) {
-		if (_itemList.has(obj)) return;
 		_itemList.add(obj);
 	};
 	
 	this.remove = function(obj) {
 		_itemList.remove(obj);
-	};
-	
-	/**
-	 * Tests if there's any overlap between two given circles, and returns
-	 * the resulting Minimum Translation Distance if so.
-	 *
-	 * @source https://github.com/vonWolfehaus/von-physics
-	 */
-	this.collideBalls = function(a, b) {
-		var dx = a.position.x - b.position.x;
-		var dy = a.position.y - b.position.y;
-		var dist = (dx * dx) + (dy * dy);
-		var radii = a.radius + b.radius;
-		
-		if (dist < radii * radii) {
-			dist = Math.sqrt(dist);
-			
-			// DebugDraw.circle(a.position.x, a.position.y, 25, 'rgba(0, 0, 0, 0.2)'); // DEBUG
-			
-			_difference.reset(dx, dy);
-			if (dist == 0)  {
-				dist = a.radius + b.radius - 1;
-				_difference.reset(radii, radii);
-			}
-			var j = (radii - dist) / dist;
-			_mtd.reset(_difference.x * j, _difference.y * j);
-			
-			// separate them!
-			var cim = a.invmass + b.invmass;
-			a.position.x += _mtd.x * (a.invmass / cim);
-			a.position.y += _mtd.y * (a.invmass / cim);
-			
-			b.position.x -= _mtd.x * (b.invmass / cim);
-			b.position.y -= _mtd.y * (b.invmass / cim);
-			
-			return _mtd;
-		}
-		return null;
-	};
-
-	/**
-	 * Using the Minimum Translation Distance provided, will calculate the impulse to apply to
-	 * the circles to make them react "properly".
-	 *
-	 * @source https://github.com/vonWolfehaus/von-physics
-	 */
-	this.resolveCollision = function(a, b, mtd) {
-		// impact speed
-		_rv.reset(a.velocity.x - b.velocity.x, a.velocity.y - b.velocity.y);
-		
-		_normal.copy(mtd).normalize();
-		
-		var velAlongNormal = _rv.dotProduct(_normal);
-		if (velAlongNormal > 0) {
-			// the 2 balls are intersecting, but they're moving away from each other already
-			return;
-		}
-
-		var e = Math.min(a.restitution, b.restitution);
-		
-		// calculate impulse scalar
-		var i = -(1 + e) * velAlongNormal;
-		i /= a.invmass + b.invmass;
-		
-		_impulse.reset(_normal.x * i, _normal.y * i);
-
-		a.velocity.x += (a.invmass * _impulse.x);
-		a.velocity.y += (a.invmass * _impulse.y);
-		
-		b.velocity.x -= (b.invmass * _impulse.x);
-		b.velocity.y -= (b.invmass * _impulse.y);
 	};
 	
 	this.getNeighbors = function(body, pixelRadius, list) {

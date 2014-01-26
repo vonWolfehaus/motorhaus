@@ -3,6 +3,7 @@ define(function(require) {
 // imports
 var Tools = require('utils/Tools');
 var World = require('entities/World');
+var PhysicsConstants = require('physics/PhysicsConstants');
 
 // constructor
 var RadialColider2 = function(entity, settings) {
@@ -20,6 +21,7 @@ var RadialColider2 = function(entity, settings) {
 	this.hasFriction = false;
 	this.autoAdd = true;
 	this.collisionId = this.uniqueId;
+	this.boundaryBehavior = PhysicsConstants.BOUNDARY_BOUNCE;
 	
 	// attribute override
 	Tools.merge(this, settings);
@@ -64,11 +66,17 @@ RadialColider2.prototype = {
 	activate: function() {
 		this.solid = true;
 		this.active = true;
+		if (this.autoAdd) {
+			World.broadphase.add(this);
+		}
 	},
 	
 	disable: function() {
 		this.solid = false;
 		this.active = false;
+		if (this.autoAdd) {
+			World.broadphase.remove(this);
+		}
 	},
 	
 	update: function() {
@@ -88,22 +96,51 @@ RadialColider2.prototype = {
 		this.position.x += this.velocity.x * World.elapsed;
 		this.position.y += this.velocity.y * World.elapsed;
 		
-		if (this.position.x < this.radius) {
-			this.position.x = this.radius;
-			this.velocity.x = -this.velocity.x * this.restitution;
-			
-		} else if (this.position.x + this.radius > World.width) {
-			this.position.x = World.width - this.radius;
-			this.velocity.x = -this.velocity.x * this.restitution;
-		}
-		
-		if (this.position.y < this.radius) {
-			this.position.y = this.radius;
-			this.velocity.y = -this.velocity.y * this.restitution;
-			
-		} else if (this.position.y + this.radius > World.height) {
-			this.position.y = World.height - this.radius;
-			this.velocity.y = -this.velocity.y * this.restitution;
+		switch (this.boundaryBehavior) {
+			case PhysicsConstants.BOUNDARY_DISABLE:
+				if (this.position.x < this.radius ||
+				    this.position.x + this.radius > World.width ||
+				    this.position.y < this.radius ||
+				    this.position.y + this.radius > World.height) {
+					this.onCollision.dispatch(null);
+				}
+				break;
+				
+			case PhysicsConstants.BOUNDARY_BOUNCE:
+				if (this.position.x < this.radius) {
+					this.position.x = this.radius;
+					this.velocity.x = -this.velocity.x * this.restitution;
+					
+				} else if (this.position.x + this.radius > World.width) {
+					this.position.x = World.width - this.radius;
+					this.velocity.x = -this.velocity.x * this.restitution;
+				}
+				
+				if (this.position.y < this.radius) {
+					this.position.y = this.radius;
+					this.velocity.y = -this.velocity.y * this.restitution;
+					
+				} else if (this.position.y + this.radius > World.height) {
+					this.position.y = World.height - this.radius;
+					this.velocity.y = -this.velocity.y * this.restitution;
+				}
+				break;
+				
+			case PhysicsConstants.BOUNDARY_WRAP:
+				if (this.position.x < this.radius) {
+					this.position.x += World.width + this.radius;
+					
+				} else if (this.position.x + this.radius > World.width) {
+					this.position.x -= World.width - this.radius;
+				}
+				
+				if (this.position.y < this.radius) {
+					this.position.y += World.height + this.radius;
+					
+				} else if (this.position.y + this.radius > World.height) {
+					this.position.y -= World.height - this.radius;
+				}
+				break;
 		}
 		
 		DebugDraw.circle(this.position.x, this.position.y, this.radius);

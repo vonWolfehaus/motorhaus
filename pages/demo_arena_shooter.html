@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body {
+			color: #fff;
+			background: #151515;
+			overflow: hidden;
+			text-align: center;
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+		}
+		canvas {
+			pointer-events: none;
+			
+		}
+	</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+<canvas id="debug"></canvas>
+
+
+<script type="text/javascript" src="../src/lib/easeljs-0.7.1.min.js"></script>
+<script type="text/javascript" src="../src/lib/require.js"></script>
+<script type="text/javascript">
+// --allow-file-access --allow-file-access-from-files --disable-web-security --allow-running-insecure-content --allow-sandbox-debugging --incognito --enable-extension-timeline-api
+// open /Applications/Google\ Chrome\ Canary.app --args --disable-web-security -–allow-file-access-from-files
+require.config({
+	baseUrl: '../src'
+});
+require(['core/Engine', '../states/DemoArenaShooter'],
+function(Engine, DemoArenaShooter) {
+	
+	var engine = new Engine();
+	
+	engine.state.add('DemoArenaShooter', DemoArenaShooter);
+	
+	engine.start('DemoArenaShooter');
+	
+});
+</script>
+</body>
+</html>

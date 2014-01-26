@@ -11,26 +11,27 @@ var DebugDraw = require('utils/DebugDraw');
 var Player = require('entities/GamepadPlayer');
 
 
-var XboxPadTest = function() {
+var DemoArenaShooter = function() {
 	Kai.pads = new GamepadController();
 	
 	this.players = [];
 	this.things = [];
 };
 
-XboxPadTest.prototype = {
+DemoArenaShooter.prototype = {
 	
 	preload: function () {
-		console.log('[XboxPadTest.preload]');
+		console.log('[DemoArenaShooter.preload]');
 		Kai.load.image('players', '../img/players.png');
 		Kai.load.image('bullet', '../img/bullet.png');
 		Kai.load.image('tileset', '../img/hex_tiles_b0rked.png');
+		Kai.load.image('tileset', '../img/minions.png');
 		
 		// crimson land?
 	},
 
 	create: function () {
-		// console.log('[XboxPadTest.create]');
+		// console.log('[DemoArenaShooter.create]');
 		Kai.pads.onConnect.add(this.padAdded, this);
 		Kai.pads.onDisconnect.add(this.padRemoved, this);
 		
@@ -60,21 +61,20 @@ XboxPadTest.prototype = {
 		DOMTools.copySpatial(canvas, debugCanvas);
 		// END DEBUG
 		
-		console.log('[XboxPadTest.create] Running');
+		console.log('[DemoArenaShooter.create] Running');
 	},
 	
 	padAdded: function(pad) {
 		this.players[pad.id].activate(100 * pad.id + 200, 100 * pad.id + 200);
-		console.log('[XboxPadTest.padRemoved] Player '+(pad.id+1)+' joined');
+		console.log('[DemoArenaShooter.padRemoved] Player '+(pad.id+1)+' joined');
 	},
 	
 	padRemoved: function(pad) {
 		this.players[pad.id].disable();
-		console.log('[XboxPadTest.padRemoved] Player '+(pad.id+1)+' left');
+		console.log('[DemoArenaShooter.padRemoved] Player '+(pad.id+1)+' left');
 	},
 	
 	update: function () {
-		Kai.debugCtx.clearRect(0, 0, Kai.width, Kai.height);
 		Kai.pads.update();
 		
 		World.broadphase.update();
@@ -96,6 +96,6 @@ XboxPadTest.prototype = {
 	}
 };
 
-return XboxPadTest;
+return DemoArenaShooter;
 
 });
