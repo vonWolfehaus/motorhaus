@@ -10,40 +10,6 @@ var DebugDraw = require('utils/DebugDraw');
 
 var Player = require('entities/GamepadPlayer');
 
-/*
-TODO
-
-- change component naming convention to [ACCESSOR]_[THING]
-
-- player management component
-track active controllers, fire signal when all players pressed start.
-control respawning.
-tally scores.
-
-- background (tilemap)
-- camera (scroll and zoom to fit)
-
-- point totals next to radar
-
-at this point, remove other game code (references to minions) and push to github.
-copy everything over to new private repo and continue work from there.
-
-- create new input component
-input components are specific to games, so we have our arena shooter twin stick controls and affect accel and rotation
-
-- point plates (touch to control, time = points)
-sitting nearby, player can press bumper to convert 10 points to a minion
-
-- new player graphic
-- resize minion to be smaller?
-
-- minions
-wander in squads of 5 (first 4 always follow owner)
-dpad switch minion modes
-
-- game timer
-- radar at top?
-*/
 
 var XboxPadTest = function() {
 	Kai.pads = new GamepadController();
