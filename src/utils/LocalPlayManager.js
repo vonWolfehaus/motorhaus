@@ -24,9 +24,8 @@ LocalPlayManager.prototype = {
 		var i, obj;
 		for (var i = 0; i < entities.length; i++) {
 			obj = entities[i];
-			obj.health.onDeath.add();
-			obj.health.onPlayerRespawn.add();
-			obj.health.onPlayerScore.add();
+			// obj.health.onDeath.add();
+			// obj.health.onActivate.add();
 		};
 		
 	},

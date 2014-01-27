@@ -143,7 +143,7 @@ RadialColider2.prototype = {
 				break;
 		}
 		
-		DebugDraw.circle(this.position.x, this.position.y, this.radius);
+		// DebugDraw.circle(this.position.x, this.position.y, this.radius);
 	},
 	
 	dispose: function() {

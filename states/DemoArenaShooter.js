@@ -6,8 +6,10 @@ var World = require('entities/World');
 var Grid = require('physics/CollisionGrid');
 var GamepadController = require('components/input/GamepadController');
 var DOMTools = require('utils/DOMTools');
+var MathTools = require('math/MathTools');
 var DebugDraw = require('utils/DebugDraw');
 
+var Camera = require('entities/Camera2');
 var Player = require('entities/GamepadPlayer');
 var LocalPlayManager = require('utils/LocalPlayManager');
 
@@ -35,6 +37,7 @@ DemoArenaShooter.prototype = {
 		Kai.pads.onConnect.add(this.padAdded, this);
 		Kai.pads.onDisconnect.add(this.padRemoved, this);
 		
+		// game world
 		World.set({
 			width: 2000,
 			height: 2000,
@@ -49,11 +52,42 @@ DemoArenaShooter.prototype = {
 		
 		Kai.stage = new createjs.Stage(canvas);
 		
+		// "tilemap"
+		var i, x = 0, y = 0,
+			tileWidth = 248, tileHeight = 192;
+		
+		this.widthInTiles = Math.floor(World.width / tileWidth) + 1;
+		this.heightInTiles = Math.floor(World.height / tileHeight) + 1;
+		this.numTiles = this.widthInTiles * this.heightInTiles;
+		
+		var tile, bgLayer = new createjs.Container();
+		for (i = 0; i < this.numTiles; i++) {
+			tile = new createjs.Bitmap(Kai.cache.getImage('tileset'));
+			tile.x = x * tileWidth;
+			tile.y = y * tileHeight;
+			tile.sourceRect = new createjs.Rectangle(/*MathTools.randomInt(0, 4)*tileWidth*/0, 0, tileWidth, tileHeight)
+			
+			bgLayer.addChild(tile);
+			
+			x++;
+			if (x === this.widthInTiles) {
+				x = 0;
+				y++;
+			}
+		}
+		Kai.stage.addChild(bgLayer);
+		
+		// game logic
 		this.playManager = new LocalPlayManager();
 		
-		for (var i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++) {
 			this.players[i] = new Player(100 * i + 200, 100 * i + 200, i);
 		}
+		
+		this.camera = new Camera({
+			displayObject: Kai.stage
+		});
+		this.camera.follow(this.players[0].position);
 		
 		// set manager up with the entities that hold health components
 		// this.playManager.trackEntities(this.players);
@@ -85,6 +119,7 @@ DemoArenaShooter.prototype = {
 		}
 		
 		World.broadphase.update();
+		this.camera.update();
 		// World.map.update();
 	},
 	

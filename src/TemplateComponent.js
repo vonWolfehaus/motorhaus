@@ -1,3 +1,6 @@
+/**
+ * Class description
+ */
 define(function(require) {
 	
 // imports

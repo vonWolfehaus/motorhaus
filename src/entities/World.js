@@ -5,6 +5,7 @@ return {
 	width: 1,
 	height: 1,
 	depth: 1,
+	scale: 1,
 	gravity: 8,
 	friction: 0.98,
 	elapsed: 0.01666,
@@ -13,7 +14,7 @@ return {
 	
 	set: function(settings) {
 		Tools.merge(this, settings);
-	},
+	}/*,
 	
 	update: function() {
 		if (this.broadphase) {
@@ -22,7 +23,7 @@ return {
 		if (this.map) {
 			this.map.update();
 		}
-	}
+	}*/
 };
 
 });

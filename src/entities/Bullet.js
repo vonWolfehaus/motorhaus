@@ -16,7 +16,7 @@ var Bullet = function(settings) {
 	var diameter = radius * 2;
 	
 	// attributes
-	this.speed = 800;
+	this.speed = 700;
 	this.damage = 50;
 	this.parent = null; // turret
 	this.pool = null; // automatically set by the pool itself
