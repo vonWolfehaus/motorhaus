@@ -241,6 +241,10 @@ Vec2.prototype.draw = function(ctx, startX, startY, drawingColor) {
 	ctx.stroke();
 };
 
+Vec2.prototype.toString = function() {
+	return '['+this.x+', '+this.y+']';
+};
+
 Vec2.draw = function(ctx, v1, v2, drawingColor, camOffsetX, camOffsetY) {
 	camOffsetX = camOffsetX || 0;
 	camOffsetY = camOffsetY || 0;

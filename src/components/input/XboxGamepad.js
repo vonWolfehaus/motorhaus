@@ -113,6 +113,12 @@ XboxGamepad.prototype = {
 		this.leftAxis.y = 0;
 		this.rightAxis.x = 0;
 		this.rightAxis.y = 0;
+		this.leftTrigger = 0;
+		this.rightTrigger = 0;
+		for (i = 0; i < this._numButtons; i++) {
+			this.buttons[i] = 0;
+			this._prevButtons[i] = 0;
+		}
 	},
 	
 	dispose: function() {

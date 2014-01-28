@@ -84,14 +84,13 @@ GamepadPlayer.prototype = {
 		this.position.x = x;
 		this.position.y = y;
 		this.active = true;
-		// this.body.active = true;
 
 		this.view.activate();
 		this.body.activate();
 		this.health.activate();
 		this.input.activate();
 		this.turret.activate();
-		// console.log('Player is active');
+		console.log('Player is active at '+this.position);
 	},
 	
 	disable: function() {

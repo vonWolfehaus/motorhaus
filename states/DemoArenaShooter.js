@@ -8,6 +8,7 @@ var GamepadController = require('components/input/GamepadController');
 var DOMTools = require('utils/DOMTools');
 var MathTools = require('math/MathTools');
 var DebugDraw = require('utils/DebugDraw');
+var Rectangle = require('math/Rectangle');
 
 var Camera = require('entities/Camera2');
 var Player = require('entities/GamepadPlayer');
@@ -79,15 +80,21 @@ DemoArenaShooter.prototype = {
 		
 		// game logic
 		this.playManager = new LocalPlayManager();
+		var playerPosArray = [];
+		var centerX = World.width / 2;
+		var centerY = World.height / 2;
 		
 		for (i = 0; i < 4; i++) {
-			this.players[i] = new Player(100 * i + 200, 100 * i + 200, i);
+			this.players[i] = new Player(MathTools.random(100) + centerX, MathTools.random(100) + centerY, i);
+			playerPosArray[i] = this.players[i].position;
 		}
 		
 		this.camera = new Camera({
-			displayObject: Kai.stage
+			displayObject: Kai.stage,
+			// deadzone: new Rectangle()
+			targets: playerPosArray
 		});
-		this.camera.follow(this.players[0].position);
+		this.camera.follow(this.players[0].position, Camera.FOLLOW_TOPDOWN_LOOSE);
 		
 		// set manager up with the entities that hold health components
 		// this.playManager.trackEntities(this.players);
@@ -104,7 +111,9 @@ DemoArenaShooter.prototype = {
 	},
 	
 	padAdded: function(pad) {
-		this.players[pad.id].activate(100 * pad.id + 200, 100 * pad.id + 200);
+		var centerX = World.width / 2;
+		var centerY = World.height / 2;
+		this.players[pad.id].activate(MathTools.random(100) + centerX, MathTools.random(100) + centerY);
 		console.log('[DemoArenaShooter.padAdded] Player '+(pad.id+1)+' joined');
 	},
 	

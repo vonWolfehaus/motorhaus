@@ -18,9 +18,13 @@ var Camera2 = function (settings) {
 	// attributes
 	this.width = Kai.width;
 	this.height = Kai.height;
+	this.zoom = 1;
 	this.target = null;
-	// reference to the object that gets moved around by the camera to give the impression of a world larger than the screen.
+	this.targets = null;
+	// {x, y, scaleX, scaleY} reference to the object that gets moved around by the camera to give the impression of a world larger than the screen.
 	this.displayObject = null;
+	// {Rectangle} Moving inside this Rectangle will not cause camera moving.
+	this.deadzone = null;
 	
 	Tools.merge(this, settings);
 	
@@ -37,24 +41,20 @@ var Camera2 = function (settings) {
 	this.bounds = this.bounds || new Rectangle(0, 0, World.width, World.height);
 
 	/**
-	 * @property {Rectangle} deadzone - Moving inside this Rectangle will not cause camera moving.
-	 */
-	this.deadzone = null;
-
-	/**
 	 * @property {boolean} atLimit - Whether this camera is flush with the World Bounds or not.
 	 */
 	this.atLimit = { x: false, y: false };
 	
 	this._edge = 0;
 	
-	console.log(this);
+	// console.log(this);
 };
 
 Camera2.FOLLOW_LOCKON = 0;
 Camera2.FOLLOW_PLATFORMER = 1;
-Camera2.FOLLOW_TOPDOWN = 2;
-Camera2.FOLLOW_TOPDOWN_TIGHT = 3;
+Camera2.FOLLOW_TOPDOWN_LOOSE = 2;
+Camera2.FOLLOW_TOPDOWN = 3;
+Camera2.FOLLOW_TOPDOWN_TIGHT = 4;
 
 Camera2.prototype = {
 
@@ -82,6 +82,11 @@ Camera2.prototype = {
 				this.deadzone = new Rectangle((this.width - w) / 2, (this.height - h) / 2 - h * 0.25, w, h);
 				break;
 
+			case Camera2.FOLLOW_TOPDOWN_LOOSE:
+				helper = Math.max(this.width, this.height) / 2;
+				this.deadzone = new Rectangle((this.width - helper) / 2, (this.height - helper) / 2, helper, helper);
+				break;
+			
 			case Camera2.FOLLOW_TOPDOWN:
 				helper = Math.max(this.width, this.height) / 4;
 				this.deadzone = new Rectangle((this.width - helper) / 2, (this.height - helper) / 2, helper, helper);
@@ -91,7 +96,7 @@ Camera2.prototype = {
 				helper = Math.max(this.width, this.height) / 8;
 				this.deadzone = new Rectangle((this.width - helper) / 2, (this.height - helper) / 2, helper, helper);
 				break;
-
+			
 			case Camera2.FOLLOW_LOCKON:
 				this.deadzone = null;
 				break;
@@ -121,9 +126,7 @@ Camera2.prototype = {
 	* @param {number} y - Y position.
 	*/
 	focusOnXY: function (x, y) {
-
 		this.setPosition(Math.round(x - (this.width*0.5)), Math.round(y - (this.height*0.5)));
-
 	},
 
 	/**
@@ -132,6 +135,7 @@ Camera2.prototype = {
 	*/
 	update: function () {
 		if (this.target) {
+			// target must be set if you also want to use targets
 			this.updateTarget();
 		}
 
@@ -145,42 +149,58 @@ Camera2.prototype = {
 	},
 
 	updateTarget: function () {
-		var minX, minY, maxX, maxY;
+		var i, minX, minY, maxX, maxY, w = 0, h = 0,
+			t, len;
 		// loop through all the targets to find position min/max, which becomes target.x/y/width/height
-		if (this.deadzone)
-		{
+		if (this.targets) {
+			len = this.targets.length;
+			minX = 0, minY = 0, maxX = 0, maxY = 0;
+			for (i = 0; i < len; i++) {
+				t = this.targets[i];
+				if (t.x < minX) minX = t.x;
+				if (t.y < minY) minY = t.y;
+				if (t.x > maxX) maxX = t.x;
+				if (t.y > maxY) maxY = t.y;
+			}
+			this.target.x = minX;
+			this.target.y = minY;
+			w = maxX - minX;
+			h = maxY - minY;
+			
+			var dx = minX - maxX;
+			var dy = minY - maxY;
+			var dist = Math.sqrt((dx * dx) + (dy * dy));
+			this.zoom = Math.tan(0.005 * 0.5) * (dist * 0.5);
+			
+		}
+		
+		if (this.deadzone) {
 			this._edge = this.target.x - this.deadzone.x;
 
-			if (this.position.x > this._edge)
-			{
+			if (this.position.x > this._edge) {
 				this.position.x = this._edge;
 			}
 
-			this._edge = this.target.x /*+ this.target.width*/ - this.deadzone.x - this.deadzone.width;
+			this._edge = this.target.x + w - this.deadzone.x - this.deadzone.width;
 
-			if (this.position.x < this._edge)
-			{
+			if (this.position.x < this._edge) {
 				this.position.x = this._edge;
 			}
 
 			this._edge = this.target.y - this.deadzone.y;
 
-			if (this.position.y > this._edge)
-			{
+			if (this.position.y > this._edge) {
 				this.position.y = this._edge;
 			}
 
-			this._edge = this.target.y /*+ this.target.height*/ - this.deadzone.y - this.deadzone.height;
+			this._edge = this.target.y + h - this.deadzone.y - this.deadzone.height;
 
-			if (this.position.y < this._edge)
-			{
+			if (this.position.y < this._edge) {
 				this.position.y = this._edge;
 			}
 			
-			// this.displayObject.scaleX = this.displayObject.scaleY = this.zoom;
-		}
-		else
-		{
+			this.displayObject.scaleX = this.displayObject.scaleY = this.zoom;
+		} else {
 			this.focusOnXY(this.target.x, this.target.y);
 		}
 

@@ -14,9 +14,9 @@ return {
 	
 	set: function(settings) {
 		Tools.merge(this, settings);
-	}/*,
+	}
 	
-	update: function() {
+	/*update: function() {
 		if (this.broadphase) {
 			this.broadphase.update();
 		}
