@@ -18,7 +18,10 @@ var Camera2 = function (settings) {
 	// attributes
 	this.width = Kai.width;
 	this.height = Kai.height;
-	this.zoom = 1;
+	this.scalable = false;
+	this.scale = 0.5;
+	this.minScale = 0.5;
+	this.maxScale = 1;
 	this.target = null;
 	this.targets = null;
 	// {x, y, scaleX, scaleY} reference to the object that gets moved around by the camera to give the impression of a world larger than the screen.
@@ -47,7 +50,7 @@ var Camera2 = function (settings) {
 	
 	this._edge = 0;
 	
-	// console.log(this);
+	console.log(this.scalable);
 };
 
 Camera2.FOLLOW_LOCKON = 0;
@@ -61,21 +64,25 @@ Camera2.prototype = {
 	/**
 	 * Tells this camera which sprite to follow.
 	 * @method Camera#follow
-	 * @param {Sprite} target - The object you want the camera to track. Set to null to not follow anything.
+	 * @param {Sprite} target - Vec2 or array of entities with positions to track. Set to null to not follow anything.
 	 * @param {number} [style] Leverage one of the existing 'deadzone' presets. If you use a custom deadzone, ignore this parameter and manually specify the deadzone after calling follow().
 	 */
 	follow: function (target, style) {
-
 		if (typeof style === 'undefined') {
 			style = Camera2.FOLLOW_TOPDOWN;
 		}
-
-		this.target = target;
+		
+		if (Object.prototype.toString.call(target) === '[object Array]' ) {
+			console.log('[Camera2.follow] Tracking multiple targets');
+			this.target = new Vec2();
+			this.targets = target;
+		} else {
+			this.target = target;
+		}
 
 		var helper;
 
 		switch (style) {
-
 			case Camera2.FOLLOW_PLATFORMER:
 				var w = this.width / 8;
 				var h = this.height / 3;
@@ -114,9 +121,7 @@ Camera2.prototype = {
 	* @param {any} displayObject - The display object to focus the camera on. Must have visible x/y properties.
 	*/
 	focusOn: function (displayObject) {
-
 		this.setPosition(Math.round(displayObject.x - (this.width*0.5)), Math.round(displayObject.y - (this.height*0.5)));
-
 	},
 
 	/**
@@ -145,65 +150,85 @@ Camera2.prototype = {
 
 		this.displayObject.x = -this.position.x;
 		this.displayObject.y = -this.position.y;
-		// console.log(this.position.x+', '+this.position.y);
+		
+		if (this.scaleable) {
+			this.displayObject.scaleX = this.scale;
+			this.displayObject.scaleY = this.scale;
+		}
 	},
 
 	updateTarget: function () {
 		var i, minX, minY, maxX, maxY, w = 0, h = 0,
 			t, len;
-		// loop through all the targets to find position min/max, which becomes target.x/y/width/height
+		
+		// loop through all the targets to find bounding area
 		if (this.targets) {
 			len = this.targets.length;
-			minX = 0, minY = 0, maxX = 0, maxY = 0;
+			minX = Number.MAX_VALUE, minY = Number.MAX_VALUE;
+			maxX = Number.MIN_VALUE, maxY = Number.MIN_VALUE;
 			for (i = 0; i < len; i++) {
 				t = this.targets[i];
-				if (t.x < minX) minX = t.x;
-				if (t.y < minY) minY = t.y;
-				if (t.x > maxX) maxX = t.x;
-				if (t.y > maxY) maxY = t.y;
+				if (t.active) {
+					pos = t.position;
+					if (pos.x < minX) minX = pos.x;
+					if (pos.y < minY) minY = pos.y;
+					if (pos.x > maxX) maxX = pos.x;
+					if (pos.y > maxY) maxY = pos.y;
+				}
 			}
-			this.target.x = minX;
-			this.target.y = minY;
-			w = maxX - minX;
-			h = maxY - minY;
+			this.target.x = (minX + maxX) * 0.5;
+			this.target.y = (minY + maxY) * 0.5;
 			
-			var dx = minX - maxX;
-			var dy = minY - maxY;
-			var dist = Math.sqrt((dx * dx) + (dy * dy));
-			this.zoom = Math.tan(0.005 * 0.5) * (dist * 0.5);
-			
+			if (this.scalable) {
+				// w = maxX - minX;
+				// h = maxY - minY;
+				if (maxX - this.position.x > Kai.width || minX - this.position.x < 0 ||
+				    	maxY - this.position.y > Kai.height || minY - this.position.y < 0) {
+					
+					var len = Math.sqrt((w * w) + (h * h));
+					len = Math.tan(0.005 * 0.5) * (len * 0.5);
+					if (len < this.minScale) len = this.minScale;
+					if (w < h) {
+						len = h / len;
+					} else {
+						len = w / len;
+					}
+					console.log(len);
+					this.scale = len;
+				} else {
+					this.scale = 1;
+				}
+				
+				this.target.x *= this.scale;
+				this.target.y *= this.scale;
+			}
+			// DebugDraw.circle(this.target.x - this.position.x, this.target.y - this.position.y, 2);
 		}
 		
 		if (this.deadzone) {
 			this._edge = this.target.x - this.deadzone.x;
-
 			if (this.position.x > this._edge) {
 				this.position.x = this._edge;
 			}
 
-			this._edge = this.target.x + w - this.deadzone.x - this.deadzone.width;
-
+			this._edge = this.target.x - this.deadzone.x - this.deadzone.width;
 			if (this.position.x < this._edge) {
 				this.position.x = this._edge;
 			}
 
 			this._edge = this.target.y - this.deadzone.y;
-
 			if (this.position.y > this._edge) {
 				this.position.y = this._edge;
 			}
 
-			this._edge = this.target.y + h - this.deadzone.y - this.deadzone.height;
-
+			this._edge = this.target.y - this.deadzone.y - this.deadzone.height;
 			if (this.position.y < this._edge) {
 				this.position.y = this._edge;
 			}
 			
-			this.displayObject.scaleX = this.displayObject.scaleY = this.zoom;
 		} else {
 			this.focusOnXY(this.target.x, this.target.y);
 		}
-
 	},
 
 	setBoundsToWorld: function () {
@@ -215,38 +240,32 @@ Camera2.prototype = {
 	* @method Camera2#checkWorldBounds
 	*/
 	checkBounds: function () {
-
 		this.atLimit.x = false;
 		this.atLimit.y = false;
-
+		
 		//  Make sure we didn't go outside the cameras bounds
-		if (this.position.x < this.bounds.x)
-		{
+		if (this.position.x < this.bounds.x) {
 			this.atLimit.x = true;
 			this.position.x = this.bounds.x;
 		}
 
-		if (this.position.x > this.bounds.right - this.width)
-		{
+		if (this.position.x > this.bounds.right - this.width) {
 			this.atLimit.x = true;
 			this.position.x = (this.bounds.right - this.width) + 1;
 		}
 
-		if (this.position.y < this.bounds.top)
-		{
+		if (this.position.y < this.bounds.top) {
 			this.atLimit.y = true;
 			this.position.y = this.bounds.top;
 		}
 
-		if (this.position.y > this.bounds.bottom - this.height)
-		{
+		if (this.position.y > this.bounds.bottom - this.height) {
 			this.atLimit.y = true;
 			this.position.y = (this.bounds.bottom - this.height) + 1;
 		}
 
-		// this.position.x = Math.floor(this.position.x);
-		// this.position.y = Math.floor(this.position.y);
-
+		this.position.x = Math.floor(this.position.x);
+		this.position.y = Math.floor(this.position.y);
 	},
 
 	/**
@@ -258,15 +277,12 @@ Camera2.prototype = {
 	* @param {number} y - Y position.
 	*/
 	setPosition: function (x, y) {
-
 		this.position.x = x;
 		this.position.y = y;
 
-		if (this.bounds)
-		{
+		if (this.bounds) {
 			this.checkBounds();
 		}
-
 	},
 
 	/**
@@ -277,10 +293,8 @@ Camera2.prototype = {
 	* @param {number} height - The desired height.
 	*/
 	setSize: function (width, height) {
-
 		this.width = width;
 		this.height = height;
-
 	}
 
 };

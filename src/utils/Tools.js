@@ -30,14 +30,6 @@ define(function() {
 		},
 		
 		merge: function() {
-			/*host, augment var prop;
-			for (prop in augment) {
-				if (!host.hasOwnProperty(prop)) {
-					host[prop] = augment[prop];
-				}
-			}
-			
-			return host;*/
 			var options, name, src, copy, copyIsArray, clone,
 				target = arguments[0] || {},
 				i = 1,
@@ -53,18 +45,9 @@ define(function() {
 				i = 2;
 			}
 
-			// extend Phaser if only one argument is passed
-			if (length === i)
-			{
-				target = this;
-				--i;
-			}
-
-			for ( ; i < length; i++ )
-			{
+			for ( ; i < length; i++) {
 				// Only deal with non-null/undefined values
-				if ((options = arguments[i]) != null)
-				{
+				if ((options = arguments[i]) != null) {
 					// Extend the base object
 					for (name in options)
 					{
@@ -93,10 +76,8 @@ define(function() {
 							// Never move original objects, clone them
 							target[name] = this.extend(deep, clone, copy);
 
-						// Don't bring in undefined values
-						}
-						else if (copy !== undefined)
-						{
+						} else if (copy !== undefined) {
+							// Don't bring in undefined values
 							target[name] = copy;
 						}
 					}

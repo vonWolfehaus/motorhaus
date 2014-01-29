@@ -86,15 +86,13 @@ DemoArenaShooter.prototype = {
 		
 		for (i = 0; i < 4; i++) {
 			this.players[i] = new Player(MathTools.random(100) + centerX, MathTools.random(100) + centerY, i);
-			playerPosArray[i] = this.players[i].position;
 		}
 		
-		this.camera = new Camera({
-			displayObject: Kai.stage,
-			// deadzone: new Rectangle()
-			targets: playerPosArray
+		World.camera = new Camera({
+			displayObject: Kai.stage/*,
+			scalable: true*/
 		});
-		this.camera.follow(this.players[0].position, Camera.FOLLOW_TOPDOWN_LOOSE);
+		World.camera.follow(this.players, Camera.FOLLOW_TOPDOWN_TIGHT);
 		
 		// set manager up with the entities that hold health components
 		// this.playManager.trackEntities(this.players);
@@ -128,7 +126,7 @@ DemoArenaShooter.prototype = {
 		}
 		
 		World.broadphase.update();
-		this.camera.update();
+		World.camera.update();
 		// World.map.update();
 	},
 	

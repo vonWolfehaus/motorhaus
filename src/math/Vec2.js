@@ -181,6 +181,39 @@ Vec2.prototype.lerp = function(v, alpha) {
 	return this;
 };
 
+// http://keithmaggio.wordpress.com/2011/02/15/math-magician-lerp-slerp-and-nlerp/
+// NOT TESTED, LOOKS BROKEN
+Vec2.prototype.slerp = function(v, alpha) {
+	var dot = this.dotProduct(v);
+	var dx = this.x - v.x, dy = this.y - v.y;
+	if (dot < -1) dot = -1;
+	if (dot > 1) dot = 1;
+	var theta = Math.acos(dot) * alpha;
+	dx *= dot;
+	dy *= dot;
+	var len = Math.sqrt((dx * dx) + (dy * dy));
+	if (len !== 0) {
+		dx /= len;
+		dy /= len;
+	}
+	// ((start*Mathf.Cos(theta)) + (RelativeVec*Mathf.Sin(theta)))
+	this.multiplyScalar(Math.cos(theta));
+	var sin = Math.sin(theta);
+	this.x += dx * sin;
+	this.y += dy * sin;
+	return this;
+};
+
+Vec2.prototype.nlerp = function(v, alpha) {
+	this.x += (v.x - this.x) * alpha;
+	this.y += (v.y - this.y) * alpha;
+	var length = this.getLength();
+	if (length === 0) return this;
+	this.x /= length;
+	this.y /= length;
+	return this;
+};
+
 /**
  * Normalize the vector
  * @return {Vector2D}

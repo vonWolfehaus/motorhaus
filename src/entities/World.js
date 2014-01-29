@@ -11,6 +11,7 @@ return {
 	elapsed: 0.01666,
 	broadphase: null,
 	map: null,
+	camera: null,
 	
 	set: function(settings) {
 		Tools.merge(this, settings);
