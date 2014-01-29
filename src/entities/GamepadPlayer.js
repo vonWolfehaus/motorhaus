@@ -151,7 +151,7 @@ GamepadPlayer.prototype = {
 			case XBOX.A:
 				// console.log('Player '+this.id+': A is down: '+val);
 				// console.log(this.turret._pool.toString());
-				console.log(World.camera.position);
+				// console.log(World.camera.scale);
 				break;
 			
 			// BUY MINIONS

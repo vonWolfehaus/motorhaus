@@ -89,10 +89,12 @@ DemoArenaShooter.prototype = {
 		}
 		
 		World.camera = new Camera({
-			displayObject: Kai.stage/*,
-			scalable: true*/
+			displayObject: Kai.stage,
+			scalable: true,
+			minScale: 0.5,
+			scalePadding: 200
 		});
-		World.camera.follow(this.players, Camera.FOLLOW_TOPDOWN_TIGHT);
+		World.camera.follow(this.players, Camera.FOLLOW_LOCKON);
 		
 		// set manager up with the entities that hold health components
 		// this.playManager.trackEntities(this.players);

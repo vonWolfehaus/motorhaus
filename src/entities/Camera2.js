@@ -18,10 +18,11 @@ var Camera2 = function (settings) {
 	// attributes
 	this.width = Kai.width;
 	this.height = Kai.height;
-	this.scalable = false;
-	this.scale = 0.5;
-	this.minScale = 0.5;
-	this.maxScale = 1;
+	this.scalable = false; // scale if there are multiple targets and they get outside of view
+	this.scale = 1;
+	this.minScale = 0.5; // how far it can zoom out
+	this.maxScale = 1; // how far to zoom in
+	this.scalePadding = 100;
 	this.target = null;
 	this.targets = null;
 	// {x, y, scaleX, scaleY} reference to the object that gets moved around by the camera to give the impression of a world larger than the screen.
@@ -140,35 +141,38 @@ Camera2.prototype = {
 	*/
 	update: function () {
 		if (this.target) {
-			// target must be set if you also want to use targets
 			this.updateTarget();
 		}
 
 		if (this.bounds) {
 			this.checkBounds();
 		}
-
-		this.displayObject.x = -this.position.x;
-		this.displayObject.y = -this.position.y;
 		
-		if (this.scaleable) {
+		if (this.scalable) {
 			this.displayObject.scaleX = this.scale;
 			this.displayObject.scaleY = this.scale;
 		}
+		
+		this.displayObject.x = -this.position.x * this.scale;
+		this.displayObject.y = -this.position.y * this.scale;
 	},
 
 	updateTarget: function () {
-		var i, minX, minY, maxX, maxY, w = 0, h = 0,
-			t, len;
+		var i, minX, minY, maxX, maxY, w, h, rx, ry,
+			t, len, lastActive, activeLen;
 		
 		// loop through all the targets to find bounding area
 		if (this.targets) {
 			len = this.targets.length;
+			activeLen = 0;
+			
 			minX = Number.MAX_VALUE, minY = Number.MAX_VALUE;
 			maxX = Number.MIN_VALUE, maxY = Number.MIN_VALUE;
 			for (i = 0; i < len; i++) {
 				t = this.targets[i];
 				if (t.active) {
+					activeLen++;
+					lastActive = t;
 					pos = t.position;
 					if (pos.x < minX) minX = pos.x;
 					if (pos.y < minY) minY = pos.y;
@@ -176,33 +180,39 @@ Camera2.prototype = {
 					if (pos.y > maxY) maxY = pos.y;
 				}
 			}
-			this.target.x = (minX + maxX) * 0.5;
-			this.target.y = (minY + maxY) * 0.5;
 			
-			if (this.scalable) {
-				// w = maxX - minX;
-				// h = maxY - minY;
-				if (maxX - this.position.x > Kai.width || minX - this.position.x < 0 ||
-				    	maxY - this.position.y > Kai.height || minY - this.position.y < 0) {
+			if (activeLen > 1) {
+				this.target.x = (minX + maxX) * 0.5;
+				this.target.y = (minY + maxY) * 0.5;
+				
+				if (this.scalable) {
+					w = maxX - minX + this.scalePadding;
+					h = maxY - minY + this.scalePadding;
 					
-					var len = Math.sqrt((w * w) + (h * h));
-					len = Math.tan(0.005 * 0.5) * (len * 0.5);
-					if (len < this.minScale) len = this.minScale;
-					if (w < h) {
-						len = h / len;
+					rx = w === 0 ? 1 : Kai.width / w;
+					ry = h === 0 ? 1 : Kai.height / h;
+					if (rx < ry) {
+						this.scale = rx;
 					} else {
-						len = w / len;
+						this.scale = ry;
 					}
-					console.log(len);
-					this.scale = len;
-				} else {
-					this.scale = 1;
+					
+					if (this.scale < this.minScale) {
+						this.scale = this.minScale;
+					} else if (this.scale > this.maxScale) {
+						this.scale = this.maxScale;
+					}
+					
+					this.target.x *= this.scale;
+					this.target.y *= this.scale;
+					
+					// DebugDraw.circle(this.target.x - this.position.x, this.target.y - this.position.y, 2);
 				}
 				
-				this.target.x *= this.scale;
-				this.target.y *= this.scale;
+			} else if (activeLen === 1) {
+				this.target.x = lastActive.position.x;
+				this.target.y = lastActive.position.y;
 			}
-			// DebugDraw.circle(this.target.x - this.position.x, this.target.y - this.position.y, 2);
 		}
 		
 		if (this.deadzone) {
