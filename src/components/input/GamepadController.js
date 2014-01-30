@@ -54,6 +54,7 @@ GamepadController.prototype = {
 	_addPad: function(gamepad) {
 		var ctrl = this.controllers[gamepad.index];
 		ctrl.register(gamepad);
+		ctrl.activate();
 		
 		this.onConnect.dispatch(ctrl);
 		this.activeControllers++;

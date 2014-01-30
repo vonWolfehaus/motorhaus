@@ -22,8 +22,8 @@ define(['require', 'math/Vec2', 'lib/LinkedList'],
 		
 		components: [],
 		
-		width: 0, // screen size (in pixels); renderer or state is supposed to set this
-		height: 0,
+		width: window.innerWidth, // screen size (in pixels); renderer or state usually sets this
+		height: window.innerHeight,
 		
 		ready: false, // true when all systems are go
 		inputBlocked: true, // always block input while states are loading

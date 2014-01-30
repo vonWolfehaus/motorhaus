@@ -30,6 +30,14 @@ var Camera2 = function (settings) {
 	// {Rectangle} Moving inside this Rectangle will not cause camera moving.
 	this.deadzone = null;
 	
+	/**
+	 * The Camera is bound to this Rectangle and cannot move outside of it. By default it is enabled and set to the size of the World.
+	 * The Rectangle can be located anywhere in the world and updated as often as you like. If you don't wish the Camera to be bound
+	 * at all then set this to null. The values can be anything and are in World coordinates, with 0,0 being the center of the world.
+	 * @property {Rectangle} bounds - The Rectangle in which the Camera is bounded. Set to null to allow for movement anywhere.
+	 */
+	this.bounds = new Rectangle(0, 0, World.width, World.height);
+	
 	Tools.merge(this, settings);
 	
 	// base components
@@ -37,21 +45,13 @@ var Camera2 = function (settings) {
 	// this.velocity = new Vec2();
 	
 	/**
-	 * The Camera is bound to this Rectangle and cannot move outside of it. By default it is enabled and set to the size of the World.
-	 * The Rectangle can be located anywhere in the world and updated as often as you like. If you don't wish the Camera to be bound
-	 * at all then set this to null. The values can be anything and are in World coordinates, with 0,0 being the center of the world.
-	 * @property {Rectangle} bounds - The Rectangle in which the Camera is bounded. Set to null to allow for movement anywhere.
-	 */
-	this.bounds = this.bounds || new Rectangle(0, 0, World.width, World.height);
-
-	/**
 	 * @property {boolean} atLimit - Whether this camera is flush with the World Bounds or not.
 	 */
 	this.atLimit = { x: false, y: false };
 	
 	this._edge = 0;
 	
-	console.log(this.scalable);
+	// console.log(this.scalable);
 };
 
 Camera2.FOLLOW_LOCKON = 0;
@@ -206,7 +206,7 @@ Camera2.prototype = {
 					this.target.x *= this.scale;
 					this.target.y *= this.scale;
 					
-					// DebugDraw.circle(this.target.x - this.position.x, this.target.y - this.position.y, 2);
+					DebugDraw.circle(this.target.x - this.position.x, this.target.y - this.position.y, 2);
 				}
 				
 			} else if (activeLen === 1) {

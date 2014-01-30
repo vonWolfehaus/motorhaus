@@ -4,20 +4,18 @@ define(function(require) {
 var Kai = require('core/Kai');
 var World = require('entities/World');
 var Grid = require('physics/CollisionGrid');
-var GamepadController = require('components/input/GamepadController');
 var DOMTools = require('utils/DOMTools');
 var MathTools = require('math/MathTools');
 var DebugDraw = require('utils/DebugDraw');
 var Rectangle = require('math/Rectangle');
 
 var Camera = require('entities/Camera2');
-var Player = require('entities/GamepadPlayer');
 var LocalPlayManager = require('utils/LocalPlayManager');
 
 
 var DemoArenaShooter = function() {
 	this.playManager = null;
-	this.players = [];
+	
 };
 
 DemoArenaShooter.prototype = {
@@ -33,23 +31,21 @@ DemoArenaShooter.prototype = {
 	},
 
 	create: function () {
-		// console.log('[DemoArenaShooter.create]');
-		Kai.pads = new GamepadController();
-		Kai.pads.onConnect.add(this.padAdded, this);
-		Kai.pads.onDisconnect.add(this.padRemoved, this);
+		console.log('[DemoArenaShooter.create]');
+		
+		var canvas = document.getElementById('stage');
+		canvas.width = Kai.width;
+		canvas.height = Kai.height;
 		
 		// game world
 		World.set({
-			width: 2000,
-			height: 2000,
+			width: Kai.width * 3,
+			height: Kai.height * 3,
 			friction: 0.9,
 			gravity: 0
 		});
-		World.broadphase = new Grid(150);
 		
-		var canvas = document.getElementById('stage');
-		canvas.width = Kai.width = window.innerWidth;
-		canvas.height = Kai.height = window.innerHeight;
+		World.broadphase = new Grid(150);
 		
 		Kai.stage = new createjs.Stage(canvas);
 		
@@ -78,23 +74,17 @@ DemoArenaShooter.prototype = {
 		}
 		Kai.stage.addChild(bgLayer);
 		
-		// game logic
 		this.playManager = new LocalPlayManager();
-		var playerPosArray = [];
-		var centerX = World.width / 2;
-		var centerY = World.height / 2;
-		
-		for (i = 0; i < 4; i++) {
-			this.players[i] = new Player(MathTools.random(100) + centerX, MathTools.random(100) + centerY, i);
-		}
 		
 		World.camera = new Camera({
 			displayObject: Kai.stage,
 			scalable: true,
 			minScale: 0.5,
-			scalePadding: 200
+			scalePadding: 200,
+			bounds: null
 		});
-		World.camera.follow(this.players, Camera.FOLLOW_LOCKON);
+		
+		World.camera.follow(this.playManager.players, Camera.FOLLOW_LOCKON);
 		
 		// set manager up with the entities that hold health components
 		// this.playManager.trackEntities(this.players);
@@ -110,23 +100,8 @@ DemoArenaShooter.prototype = {
 		console.log('[DemoArenaShooter.create] Running');
 	},
 	
-	padAdded: function(pad) {
-		var centerX = World.width / 2;
-		var centerY = World.height / 2;
-		this.players[pad.id].activate(MathTools.random(100) + centerX, MathTools.random(100) + centerY);
-		console.log('[DemoArenaShooter.padAdded] Player '+(pad.id+1)+' joined');
-	},
-	
-	padRemoved: function(pad) {
-		this.players[pad.id].disable();
-		console.log('[DemoArenaShooter.padRemoved] Player '+(pad.id+1)+' left');
-	},
-	
 	update: function () {
-		if (!Kai.inputBlocked) {
-			Kai.pads.update();
-		}
-		
+		this.playManager.update();
 		World.broadphase.update();
 		World.camera.update();
 		// World.map.update();
@@ -137,12 +112,7 @@ DemoArenaShooter.prototype = {
 	},
 	
 	dispose: function() {
-		Kai.pads.dispose();
 		
-		for (var i = 0; i < this.things.length; i++) {
-			this.players[i].dispose();
-		}
-		this.players.length = 0;
 	}
 };
 

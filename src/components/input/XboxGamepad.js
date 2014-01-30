@@ -43,7 +43,6 @@ XboxGamepad.prototype = {
 			this._mozAxisOffset = 1;
 		}
 		
-		this.active = true;
 		this.activate();
 		// console.log('[XboxGamepad.register] CONNECTED '+this.id);
 		// console.log(this.buttons);
@@ -58,9 +57,6 @@ XboxGamepad.prototype = {
 		this.controller = null;
 		this.buttons = null;
 		this._numButtons = 0;
-		
-		this.active = false;
-		this.activate();
 		// console.log('[XboxGamepad.unregister] DISCONNECTED '+this.id);
 	},
 	
@@ -102,13 +98,14 @@ XboxGamepad.prototype = {
 	},
 	
 	isDown: function(btn) {
-		if (Kai.inputBlocked) {
+		if (Kai.inputBlocked || !this.active) {
 			return false;
 		}
 		return !!this.buttons[btn];
 	},
 	
 	activate: function() {
+		this.active = true;
 		this.leftAxis.x = 0;
 		this.leftAxis.y = 0;
 		this.rightAxis.x = 0;
@@ -119,6 +116,10 @@ XboxGamepad.prototype = {
 			this.buttons[i] = 0;
 			this._prevButtons[i] = 0;
 		}
+	},
+	
+	disable: function() {
+		this.active = false;
 	},
 	
 	dispose: function() {
