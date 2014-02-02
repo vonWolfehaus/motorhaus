@@ -2,6 +2,7 @@ define(function(require) {
 
 // imports
 var Kai = require('core/Kai');
+var Camera = require('core/Camera2');
 var World = require('entities/World');
 var Grid = require('physics/CollisionGrid');
 var DOMTools = require('utils/DOMTools');
@@ -9,29 +10,32 @@ var MathTools = require('math/MathTools');
 var DebugDraw = require('utils/DebugDraw');
 var Rectangle = require('math/Rectangle');
 
-var Camera = require('entities/Camera2');
-var LocalPlayManager = require('utils/LocalPlayManager');
+var LocalPlayManager = require('arena/LocalPlayManager');
+var Scoreboard = require('arena/Scoreboard');
+var PlayerScoreUI = require('arena/PlayerScoreUI');
+var PointPlate = require('arena/entities/PointPlate');
 
 
-var DemoArenaShooter = function() {
+var DualStickArena = function() {
 	this.playManager = null;
 	
 };
 
-DemoArenaShooter.prototype = {
+DualStickArena.prototype = {
 	
 	preload: function () {
-		console.log('[DemoArenaShooter.preload]');
-		Kai.load.image('players', '../img/players.png');
-		Kai.load.image('bullet', '../img/bullet.png');
-		Kai.load.image('tileset', '../img/hex_tiles_b0rked.png');
-		Kai.load.image('minions', '../img/minions.png');
+		console.log('[DualStickArena.preload]');
+		Kai.load.image('players', 'img/players.png');
+		Kai.load.image('bullet', 'img/bullet.png');
+		Kai.load.image('tileset', 'img/hex_tiles_b0rked.png');
+		Kai.load.image('pointplate', 'img/point_plate.png');
+		Kai.load.image('minions', 'img/minions.png');
 		
 		// crimson land?
 	},
 
 	create: function () {
-		console.log('[DemoArenaShooter.create]');
+		console.log('[DualStickArena.create]');
 		
 		var canvas = document.getElementById('stage');
 		canvas.width = Kai.width;
@@ -39,8 +43,8 @@ DemoArenaShooter.prototype = {
 		
 		// game world
 		World.set({
-			width: Kai.width * 3,
-			height: Kai.height * 3,
+			width: Kai.width * 2,
+			height: Kai.height * 2,
 			friction: 0.9,
 			gravity: 0
 		});
@@ -49,7 +53,7 @@ DemoArenaShooter.prototype = {
 		
 		Kai.stage = new createjs.Stage(canvas);
 		
-		// "tilemap"
+		// "tilemap", just the background
 		var i, x = 0, y = 0,
 			tileWidth = 248, tileHeight = 192;
 		
@@ -74,20 +78,30 @@ DemoArenaShooter.prototype = {
 		}
 		Kai.stage.addChild(bgLayer);
 		
-		this.playManager = new LocalPlayManager();
+		// point plates
+		var numPlates = 4, radius = World.width / 2 - 200,
+			o, tau = Math.PI * 2,
+			a = 0, ao = tau / numPlates;
+		for (i = 0; i < numPlates; i++) {
+			o = new PointPlate(Math.cos(a) * radius + (World.width / 2), Math.sin(a) * radius + (World.height / 2));
+			a += ao;
+		}
+		o = new PointPlate(World.width / 2, World.height / 2);
+		
+		this.playManager = new LocalPlayManager(4);
+		this.scoreboard = new Scoreboard(4);
+		
+		this.ui = new PlayerScoreUI();
 		
 		World.camera = new Camera({
 			displayObject: Kai.stage,
 			scalable: true,
 			minScale: 0.5,
-			scalePadding: 200,
+			scalePadding: 100,
 			bounds: null
 		});
 		
 		World.camera.follow(this.playManager.players, Camera.FOLLOW_LOCKON);
-		
-		// set manager up with the entities that hold health components
-		// this.playManager.trackEntities(this.players);
 		
 		Kai.renderHook = this.draw.bind(this);
 		
@@ -97,7 +111,16 @@ DemoArenaShooter.prototype = {
 		DOMTools.copySpatial(canvas, debugCanvas);
 		// END DEBUG
 		
-		console.log('[DemoArenaShooter.create] Running');
+		
+		
+		// game management
+		/*Kai.addComponent(this, ComponentType.TIMER, {
+			interval: 3000,
+			repeat: 0
+		});
+		this.timer.onInterval.add(this._resetGame, this);*/
+		
+		console.log('[DualStickArena.create] Running');
 	},
 	
 	update: function () {
@@ -116,6 +139,6 @@ DemoArenaShooter.prototype = {
 	}
 };
 
-return DemoArenaShooter;
+return DualStickArena;
 
 });

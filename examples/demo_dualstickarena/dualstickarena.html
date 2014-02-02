@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body {
+			color: #fff;
+			background: #151515;
+			overflow: hidden;
+			text-align: center;
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+		}
+		canvas {
+			pointer-events: none;
+			
+		}
+		.container {
+			position: absolute;
+			top: 10px;
+			left: 0;
+			width: 100%;
+			display: block;
+			text-align: center;
+		}
+		.column {
+			display: inline-block;
+			width: 100px;
+		}
+		.column > span {
+			display: block;
+			font-size: 20px;
+			margin: 0 5px;
+		}
+		.red { color: #FF3636; }
+		.green { color: #33BD53; }
+		.blue { color: #0D6AFF; }
+		.yellow { color: #E3E159; }
+		.justify-right { text-align: right; }
+		.justify-left { text-align: left; }
+	</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+<canvas id="debug"></canvas>
+
+<div class="container">
+	<!-- <span id="message">Players start your controllers</span> -->
+	<div id="scoreboard">
+		<div class="column justify-right">
+			<span class="red"><span class="status"></span> :<span class="player">one</span></span>
+			<span class="green"><span class="status"></span> :<span class="player">two</span></span>
+		</div>
+		<div class="column justify-left">
+			<span class="blue"><span class="player">three</span>: <span class="status"></span></span>
+			<span class="yellow"><span class="player">four</span>: <span class="status"></span></span>
+		</div>
+	</div>
+</div>
+
+
+<script type="text/javascript" src="../../src/lib/easeljs-0.7.1.min.js"></script>
+<script type="text/javascript" src="../../src/lib/require.js"></script>
+<script type="text/javascript">
+// --allow-file-access --allow-file-access-from-files --disable-web-security --allow-running-insecure-content --allow-sandbox-debugging --incognito --enable-extension-timeline-api
+// open /Applications/Google\ Chrome\ Canary.app --args --disable-web-security -–allow-file-access-from-files
+require.config({
+	baseUrl: '../../src', // engine
+	paths: {
+		'arena': '../examples/demo_dualstickarena/src'
+	}
+});
+require(['core/Engine', 'arena/DualStickArena'],
+function(Engine, DualStickArena) {
+	
+	var engine = new Engine();
+	
+	engine.state.add('DualStickArena', DualStickArena);
+	
+	engine.start('DualStickArena');
+	
+});
+</script>
+</body>
+</html>

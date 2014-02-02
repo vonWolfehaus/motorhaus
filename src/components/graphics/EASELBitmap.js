@@ -17,6 +17,13 @@ var EASELBitmap = function(entity, settings) {
 	// attribute override
 	Tools.merge(this, settings);
 	
+	if (this.width === 0) {
+		this.width = this.image.width;
+	}
+	if (this.height === 0) {
+		this.height = this.image.height;
+	}
+	
 	// private properties
 	this.entity = entity;
 	this._display = new createjs.Bitmap(this.image);

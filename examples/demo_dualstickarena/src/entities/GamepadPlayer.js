@@ -6,10 +6,10 @@ var ComponentType = require('components/ComponentDef');
 var MathTools = require('math/MathTools');
 var World = require('entities/World');
 
-var Turret = require('entities/Turret');
+var Turret = require('./Turret');
 
 // constructor
-var GamepadPlayer = function(posx, posy, padId) {
+var GamepadPlayer = function(pos, padId) {
 	require('core/Base').call(this);
 	
 	var img = Kai.cache.getImage('players');
@@ -22,7 +22,9 @@ var GamepadPlayer = function(posx, posy, padId) {
 	this.fireRate = 130;
 	
 	// base components
-	this.position = new Vec2(posx, posy);
+	this.position = new Vec2();
+	this.position.copy(pos);
+	
 	this.velocity = new Vec2();
 	this.accel = new Vec2();
 	this.rotation = new Vec2();
@@ -38,7 +40,7 @@ var GamepadPlayer = function(posx, posy, padId) {
 		maxSpeed: 300,
 		hasAccel: true,
 		hasFriction: true,
-		collisionId: this.uniqueId
+		collisionId: this.uniqueId // with this the grid will ignore anything with the same id, like our bullets
 	});
 	Kai.addComponent(this, ComponentType.HEALTH, {
 		max: 200
@@ -64,6 +66,9 @@ var GamepadPlayer = function(posx, posy, padId) {
 	this.turret = new Turret(this);
 	
 	// signals
+	this.requestRespawn = new Signal();
+	this.requestMinion = new Signal();
+	
 	this.health.onDeath.add(this._uponDeath, this);
 	this.pad.onDown.add(this._btnDown, this);
 	this.pad.onUp.add(this._btnUp, this);
@@ -80,9 +85,8 @@ GamepadPlayer.prototype = {
 									PUBLIC
 	-------------------------------------------------------------------------------*/
 	
-	activate: function(x, y) {
-		this.position.x = x;
-		this.position.y = y;
+	activate: function(pos) {
+		this.position.copy(pos);
 		this.active = true;
 
 		this.view.activate();
@@ -140,9 +144,7 @@ GamepadPlayer.prototype = {
 	_btnDown: function(btn, val) {
 		if (!this.active) {
 			if (btn === XBOX.START) {
-				var centerX = World.width / 2;
-				var centerY = World.height / 2;
-				this.activate(MathTools.random(100) + centerX, MathTools.random(100) + centerY);
+				this.requestRespawn.dispatch(this.id);
 			}
 			return;
 		}
@@ -157,7 +159,7 @@ GamepadPlayer.prototype = {
 			// BUY MINIONS
 			case XBOX.LB:
 			case XBOX.RB:
-				
+				this.requestMinion.dispatch(this);
 				break;
 			
 			case XBOX.LT:

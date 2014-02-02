@@ -8,7 +8,7 @@ var DualPool = require('utils/DualPool');
 var Tools = require('utils/Tools');
 var World = require('entities/World');
 
-var Bullet = require('entities/Bullet');
+var Bullet = require('./Bullet');
 
 // constructor
 var Turret = function(parent, settings) {

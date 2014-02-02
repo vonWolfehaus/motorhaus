@@ -40,7 +40,7 @@ Health.prototype = {
 	activate: function() {
 		this._meter = this.max;
 		this.alive = true;
-		this.onActivate.dispatch(this.entity);
+		this.onActivate.dispatch(this._meter, this.entity);
 	},
 	
 	change: function(amount) {
@@ -52,7 +52,7 @@ Health.prototype = {
 			this._meter = 0;
 			this.alive = false;
 			
-			this.onDeath.dispatch(amount);
+			this.onDeath.dispatch(amount, this.entity);
 		} else {
 			if (this._meter > this.max + this.overage) {
 				this._meter = this.max;

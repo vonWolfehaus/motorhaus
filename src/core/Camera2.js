@@ -20,7 +20,7 @@ var Camera2 = function (settings) {
 	this.height = Kai.height;
 	this.scalable = false; // scale if there are multiple targets and they get outside of view
 	this.scale = 1;
-	this.minScale = 0.5; // how far it can zoom out
+	this.minScale = 0.3; // how far it can zoom out
 	this.maxScale = 1; // how far to zoom in
 	this.scalePadding = 100;
 	this.target = null;
@@ -153,8 +153,8 @@ Camera2.prototype = {
 			this.displayObject.scaleY = this.scale;
 		}
 		
-		this.displayObject.x = -this.position.x * this.scale;
-		this.displayObject.y = -this.position.y * this.scale;
+		this.displayObject.x = -this.position.x;
+		this.displayObject.y = -this.position.y;
 	},
 
 	updateTarget: function () {
@@ -206,7 +206,7 @@ Camera2.prototype = {
 					this.target.x *= this.scale;
 					this.target.y *= this.scale;
 					
-					DebugDraw.circle(this.target.x - this.position.x, this.target.y - this.position.y, 2);
+					// DebugDraw.circle(this.target.x - this.position.x, this.target.y - this.position.y, 2);
 				}
 				
 			} else if (activeLen === 1) {

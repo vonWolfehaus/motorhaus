@@ -20,6 +20,9 @@ define(function() {
 		},
 		
 		randomInt: function(min, max) {
+			if (arguments.length === 1) {
+				return Math.floor((Math.random() * min) - (min * 0.5));
+			}
 			return Math.floor(Math.random() * (max - min + 1) + min);
 		}
 	};

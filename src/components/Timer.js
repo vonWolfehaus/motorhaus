@@ -9,7 +9,7 @@ var Timer = function(entity, settings) {
 	require('core/Base').call(this);
 	
 	// attributes
-	this.repeat = false;
+	this.repeat = -1; // set to -1 to repeat forever
 	this.immediateDispatch = false;
 	this.interval = 1000; // milliseconds
 	
@@ -21,6 +21,7 @@ var Timer = function(entity, settings) {
 	// private properties
 	this.entity = entity;
 	this._timer = 0;
+	this._currentRepeat = this.repeat;
 	
 	this.disable();
 };
@@ -37,6 +38,7 @@ Timer.prototype = {
 	activate: function() {
 		this._timer = performance.now();
 		this.active = true;
+		this._currentRepeat = this.repeat;
 		if (this.immediateDispatch) {
 			this.onInterval.dispatch();
 		}
@@ -46,9 +48,21 @@ Timer.prototype = {
 		this.active = false;
 	},
 	
+	reset: function() {
+		this._timer = performance.now();
+		if (this.active && this.immediateDispatch) {
+			this.onInterval.dispatch();
+		}
+	},
+	
 	update: function() {
 		if (performance.now() - this._timer >= this.interval) {
 			this.onInterval.dispatch();
+			
+			if (this.repeat !== -1 && this._currentRepeat-- <= 0) {
+				this.disable();
+				return;
+			}
 			this._timer = performance.now();
 		}
 	},

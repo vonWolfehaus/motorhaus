@@ -18,6 +18,7 @@ var Bullet = function(settings) {
 	// attributes
 	this.speed = 700;
 	this.damage = 50;
+	this.hitpoints = 1; // how many points the owner gets if it hits another player
 	this.parent = null; // turret
 	this.pool = null; // automatically set by the pool itself
 	
@@ -48,6 +49,8 @@ var Bullet = function(settings) {
 	});
 	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
 		image: img,
+		regX: radius,
+		regY: radius,
 		width: diameter,
 		height: diameter
 	});
@@ -63,7 +66,7 @@ var Bullet = function(settings) {
 	this.timer.onInterval.add(this.disable, this);
 	
 	// the scanner takes over collision detection by looking at the grid for entities without
-	// being in the grid. this way bullets never see each other, just entities
+	// being in the grid itself. this way bullets never see each other, just entities
 	this.scanner.onCollision.add(this._onCollision, this);
 	// but we still need to know when we go out of bounds so we can disable
 	this.body.onCollision.add(this._onCollision, this);
@@ -122,8 +125,8 @@ Bullet.prototype = {
 			this.disable();
 		} else if (other.entity.health) {
 			other.entity.health.change(-this.damage);
+			Kai.scoreboard.changeScore(this._owner.id, this.hitpoints);
 			this.disable();
-			// console.log('TOTES COLLISION BRO');
 		}
 	}
 	
