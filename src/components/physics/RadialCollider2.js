@@ -40,9 +40,6 @@ var RadialColider2 = function(entity, settings) {
 	
 	// init
 	this.setMass(this.mass);
-	if (this.autoAdd) {
-		World.broadphase.add(this);
-	}
 };
 
 // required statics for component system
@@ -143,7 +140,7 @@ RadialColider2.prototype = {
 				break;
 		}
 		
-		// DebugDraw.circle(this.position.x, this.position.y, this.radius);
+		// DebugDraw.circle(this.position.x - World.camera.position.x, this.position.y - World.camera.position.y, this.radius);
 	},
 	
 	dispose: function() {

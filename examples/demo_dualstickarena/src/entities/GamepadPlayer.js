@@ -170,17 +170,19 @@ GamepadPlayer.prototype = {
 			// MINION CONTROL
 			case XBOX.DOWN:
 				// wander
-				World.scale--;
+				
 				break;
 			case XBOX.UP:
 				// follow
-				World.scale++;
+				
 				break;
 			case XBOX.LEFT:
 				// seek and harass other players
+				
 				break;
 			case XBOX.RIGHT:
 				// patrol between plates
+				
 				break;
 		}
 	},

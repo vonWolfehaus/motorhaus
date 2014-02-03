@@ -51,28 +51,28 @@ LocalPlayManager.prototype = {
 	
 	getRespawnPosition: function(region) {
 		region = region + 1 || 1;
-		var centerX = (World.width / 2);
-		var centerY = (World.height / 2);
+		var quarterX = (World.width / 4);
+		var quarterY = (World.height / 4);
 		
 		var nx = 0;
 		var ny = 0;
 		
 		switch (region) {
 			case 1:
-				nx = (centerX / 2) * 1;
-				ny = (centerY / 2) * 1;
+				nx = (quarterX) * 1;
+				ny = (quarterY) * 1;
 				break;
 			case 2:
-				nx = (centerX / 2) * 1;
-				ny = (centerY / 2) * 2;
+				nx = (quarterX) * 1;
+				ny = (quarterY) * 3;
 				break;
 			case 3:
-				nx = (centerX / 2) * 2;
-				ny = (centerY / 2) * 1;
+				nx = (quarterX) * 3;
+				ny = (quarterY) * 1;
 				break;
 			case 4:
-				nx = (centerX / 2) * 2;
-				ny = (centerY / 2) * 2;
+				nx = (quarterX) * 3;
+				ny = (quarterY) * 3;
 				break;
 		}
 		

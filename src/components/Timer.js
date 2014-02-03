@@ -21,6 +21,7 @@ var Timer = function(entity, settings) {
 	// private properties
 	this.entity = entity;
 	this._timer = 0;
+	this._numTicks = 0;
 	this._currentRepeat = this.repeat;
 	
 	this.disable();
@@ -39,8 +40,10 @@ Timer.prototype = {
 		this._timer = performance.now();
 		this.active = true;
 		this._currentRepeat = this.repeat;
+		this._numTicks = 0;
 		if (this.immediateDispatch) {
-			this.onInterval.dispatch();
+			this._numTicks++;
+			this.onInterval.dispatch(this._numTicks);
 		}
 	},
 	
@@ -50,16 +53,19 @@ Timer.prototype = {
 	
 	reset: function() {
 		this._timer = performance.now();
+		this._numTicks = 0;
 		if (this.active && this.immediateDispatch) {
-			this.onInterval.dispatch();
+			this._numTicks++;
+			this.onInterval.dispatch(this._numTicks);
 		}
 	},
 	
 	update: function() {
 		if (performance.now() - this._timer >= this.interval) {
-			this.onInterval.dispatch();
+			this._numTicks++;
+			this.onInterval.dispatch(this._numTicks);
 			
-			if (this.repeat !== -1 && this._currentRepeat-- <= 0) {
+			if (this.repeat !== -1 && this._currentRepeat-- === 0) {
 				this.disable();
 				return;
 			}

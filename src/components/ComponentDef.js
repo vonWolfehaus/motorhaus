@@ -21,6 +21,7 @@ define(['components/graphics/OCAN.Square',
 	'components/graphics/EASELBitmap',
 	'components/input/TwinStickMovement',
 	'components/Timer',
+	'components/behaviors/Wander',
 	],
 	
 	function() {

@@ -4,7 +4,6 @@ define(function(require) {
 var Kai = require('core/Kai');
 var ComponentType = require('components/ComponentDef');
 var Tools = require('utils/Tools');
-// var MathTools = require('math/MathTools');
 var PhysicsConstants = require('physics/PhysicsConstants');
 
 // constructor
@@ -49,8 +48,6 @@ var Bullet = function(settings) {
 	});
 	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
 		image: img,
-		regX: radius,
-		regY: radius,
 		width: diameter,
 		height: diameter
 	});

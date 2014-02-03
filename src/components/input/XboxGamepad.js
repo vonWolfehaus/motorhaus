@@ -18,8 +18,8 @@ var XboxGamepad = function(id) {
 	this.leftTrigger = 0;
 	this.rightTrigger = 0;
 	
-	// xbox controllers are sticky and don't zero well apparently
-	this.axisTolerance = 0.12;
+	// xbox sticks drift a CONSIDERABLE amount
+	this.axisTolerance = 0.2;
 	
 	
 	this.controller = null;
