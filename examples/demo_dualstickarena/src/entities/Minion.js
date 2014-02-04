@@ -30,6 +30,8 @@ var Minion = function(settings) {
 	this.accel = new Vec2();
 	this.rotation = new Vec2();
 	
+	this._target = null;
+	
 	// complex components
 	Kai.addComponent(this, ComponentType.BODY_RADIAL_COLLIDER2, {
 		mass: 10,
@@ -57,9 +59,10 @@ var Minion = function(settings) {
 		maxSpeed: 190,
 		jitterAngle: 0.5
 	});
-	/*Kai.addComponent(this, ComponentType.TARGET_BEHAVIOR, {
-		
-	});*/
+	Kai.addComponent(this, ComponentType.GRID_TARGETER, {
+		searchInterval: 1000,
+		scanRadius: 300
+	});
 	
 	// unique component configuration
 	this.view.configure({
@@ -98,12 +101,15 @@ Minion.prototype = {
 		this.timer.activate();
 		this.wander.activate();
 		
+		this.gridTargeter.collisionId = owner.collisionId;
+		this.gridTargeter.activate();
+		
 		this._owner = owner;
 		this._scratchRect.x = owner.id * this.view.height;
 		this.view.configure({
 			sourceRect: this._scratchRect
 		});
-		
+		this.body.collisionId = owner.collisionId;
 	},
 	
 	disable: function() {
@@ -116,6 +122,7 @@ Minion.prototype = {
 		this.turret.disable();
 		this.timer.disable();
 		this.wander.disable();
+		this.gridTargeter.disable();
 	},
 	
 	changeState: function(newState) {
@@ -138,9 +145,13 @@ Minion.prototype = {
 	-------------------------------------------------------------------------------*/
 	
 	_timeToDance: function() {
-		// if (this.targeter.hasTarget()) {
-			this.turret.fire();
-		// }
+		var t = this.gridTargeter.target;
+		if (t && t.active) {
+			// point the turret at the target's new position
+			var dx = t.position.x - this.position.x;
+			var dy = t.position.y - this.position.y;
+			this.turret.fire(Math.atan2(dy, dx));
+		}
 	},
 	
 	_uponDeath: function(amount) {

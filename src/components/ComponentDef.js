@@ -22,6 +22,7 @@ define(['components/graphics/OCAN.Square',
 	'components/input/TwinStickMovement',
 	'components/Timer',
 	'components/behaviors/Wander',
+	'components/GridTargeter'
 	],
 	
 	function() {

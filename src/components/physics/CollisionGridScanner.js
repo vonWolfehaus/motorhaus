@@ -27,8 +27,8 @@ var CollisionGridScanner = function(entity, settings) {
 };
 
 // required statics for component system
-CollisionGridScanner.accessor = 'scanner'; // property name as it sits on an entity
-CollisionGridScanner.className = 'SCANNER_GRID_RADIAL'; // name of component on the ComponenDef object
+CollisionGridScanner.accessor = 'collisionScanner'; // property name as it sits on an entity
+CollisionGridScanner.className = 'COLLISION_SCANNER_RADIAL'; // name of component on the ComponenDef object
 CollisionGridScanner.priority = 5; // general position in the engine's component array; highest updated first
 
 

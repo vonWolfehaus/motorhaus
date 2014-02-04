@@ -43,7 +43,7 @@ var PointPlate = function(posx, posy) {
 		radius: radius,
 		autoAdd: false
 	});
-	Kai.addComponent(this, ComponentType.SCANNER_GRID_RADIAL, {
+	Kai.addComponent(this, ComponentType.COLLISION_SCANNER_RADIAL, {
 		scanRadius: radius
 	});
 	Kai.addComponent(this, ComponentType.TIMER, {
@@ -60,7 +60,7 @@ var PointPlate = function(posx, posy) {
 		sourceRect: this._scratchRect
 	});
 	
-	this.scanner.onCollision.add(this._onCollision, this);
+	this.collisionScanner.onCollision.add(this._onCollision, this);
 	this.timer.onInterval.add(this._awardPoints, this);
 	
 	this._currentSupply = this.supply;
@@ -72,7 +72,7 @@ var PointPlate = function(posx, posy) {
 	this.view.activate();
 	this.body.activate();
 	this.timer.activate();
-	this.scanner.active = true;
+	this.collisionScanner.active = true;
 };
 
 

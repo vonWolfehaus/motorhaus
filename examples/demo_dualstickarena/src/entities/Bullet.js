@@ -43,7 +43,7 @@ var Bullet = function(settings) {
 		autoAdd: false, // bullets should always stay off the grid
 		boundaryBehavior: PhysicsConstants.BOUNDARY_DISABLE
 	});
-	Kai.addComponent(this, ComponentType.SCANNER_GRID_RADIAL, {
+	Kai.addComponent(this, ComponentType.COLLISION_SCANNER_RADIAL, {
 		scanRadius: diameter * 2
 	});
 	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
@@ -64,7 +64,7 @@ var Bullet = function(settings) {
 	
 	// the scanner takes over collision detection by looking at the grid for entities without
 	// being in the grid itself. this way bullets never see each other, just entities
-	this.scanner.onCollision.add(this._onCollision, this);
+	this.collisionScanner.onCollision.add(this._onCollision, this);
 	// but we still need to know when we go out of bounds so we can disable
 	this.body.onCollision.add(this._onCollision, this);
 	
@@ -84,8 +84,9 @@ Bullet.prototype = {
 		this.velocity.copy(vel);
 		
 		this.active = true;
-		this.scanner.active = true;
+		this.collisionScanner.active = true;
 		
+		this.body.collisionId = this._owner.collisionId;
 		this.body.activate();
 		this.view.activate();
 		this.timer.activate();
@@ -93,7 +94,7 @@ Bullet.prototype = {
 	
 	disable: function() {
 		this.active = false;
-		this.scanner.active = false;
+		this.collisionScanner.active = false;
 
 		this.body.disable();
 		this.view.disable();
