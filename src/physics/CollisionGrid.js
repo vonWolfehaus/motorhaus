@@ -147,7 +147,7 @@ return function CollisionGrid(cellSize) {
 				node = cell.first;
 				while (node) {
 					other = node.obj;
-					if (other.collisionId === body.collisionId) {
+					if (!other.solid || other.collisionId === body.collisionId) {
 						node = node.next;
 						continue;
 					}

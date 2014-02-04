@@ -97,7 +97,7 @@ DualStickArena.prototype = {
 			displayObject: Kai.stage,
 			scalable: true,
 			minScale: 0.5,
-			scalePadding: 100,
+			scalePadding: World.width / 3,
 			bounds: null
 		});
 		

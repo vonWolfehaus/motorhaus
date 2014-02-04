@@ -43,7 +43,7 @@ var GamepadPlayer = function(pos, padId) {
 		collisionId: this.uniqueId // with this the grid will ignore anything with the same id, like our bullets
 	});
 	Kai.addComponent(this, ComponentType.HEALTH, {
-		max: 200
+		max: 1200
 	});
 	Kai.addComponent(this, ComponentType.INPUT_TWINSTICK, {
 		pad: this.pad, 

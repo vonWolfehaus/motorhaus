@@ -4,8 +4,8 @@
 define(function(require) {
 	
 // imports
+var World = require('entities/World');
 var Tools = require('utils/Tools');
-var ComponentType = require('components/ComponentDef');
 
 // constructor
 var GridTargeter = function(entity, settings) {
@@ -24,17 +24,11 @@ var GridTargeter = function(entity, settings) {
 	// private properties
 	this.entity = entity;
 	this._nearby = new LinkedList();
+	this._grid = World.broadphase;
+	this._timer = 0;
 	
 	// prerequisite components
 	this.position = entity.position;
-	
-	// hot component-on-component action
-	Kai.addComponent(this, ComponentType.TIMER, {
-		interval: this.searchInterval,
-		immediateDispatch: true
-	});
-	
-	this.timer.onInterval.add(this._findTarget, this);
 };
 
 // required statics for component system
@@ -47,13 +41,22 @@ GridTargeter.prototype = {
 	constructor: GridTargeter,
 	
 	activate: function() {
-		this.active = false; // event-driven
-		this.timer.activate();
+		this.active = true;
+		this.target = null;
+		this.collisionId = this.entity.collisionId;
+		this._findTarget();
 	},
 	
 	disable: function() {
 		this.active = false;
-		this.timer.disable();
+		this.target = null;
+	},
+	
+	update: function() {
+		if (performance.now() - this._timer >= this.searchInterval) {
+			this._findTarget();
+			this._timer = performance.now();
+		}
 	},
 	
 	dispose: function() {
@@ -76,12 +79,12 @@ GridTargeter.prototype = {
 		while (node) {
 			obj = node.obj;
 			if (obj && obj.collisionId !== this.collisionId) {
-				this._target = obj;
+				this.target = obj;
 				return;
 			}
 			node = node.next;
 		}
-		this._target = null;
+		this.target = null;
 	}
 };
 

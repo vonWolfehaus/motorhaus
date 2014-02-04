@@ -18,6 +18,7 @@ var Minion = function(settings) {
 	
 	// attributes
 	this.fireRate = 500;
+	this.id = 0;
 	
 	Tools.merge(this, settings);
 	
@@ -42,7 +43,7 @@ var Minion = function(settings) {
 		collisionId: this.uniqueId // with this the grid will ignore anything with the same id, like our bullets
 	});
 	Kai.addComponent(this, ComponentType.HEALTH, {
-		max: 100
+		max: 200
 	});
 	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
 		image: img,
@@ -95,21 +96,22 @@ Minion.prototype = {
 		this.position.copy(pos);
 
 		this.view.activate();
+		// this.body.collisionId = owner.collisionId;
 		this.body.activate();
 		this.health.activate();
 		this.turret.activate();
 		this.timer.activate();
 		this.wander.activate();
-		
-		this.gridTargeter.collisionId = owner.collisionId;
 		this.gridTargeter.activate();
 		
 		this._owner = owner;
+		this.id = owner.id;
 		this._scratchRect.x = owner.id * this.view.height;
 		this.view.configure({
 			sourceRect: this._scratchRect
 		});
 		this.body.collisionId = owner.collisionId;
+		console.log(this);
 	},
 	
 	disable: function() {
@@ -146,7 +148,10 @@ Minion.prototype = {
 	
 	_timeToDance: function() {
 		var t = this.gridTargeter.target;
-		if (t && t.active) {
+		if (!t) return;
+		t = t.entity;
+		if (t.id === this.id) return;
+		if (t.active) {
 			// point the turret at the target's new position
 			var dx = t.position.x - this.position.x;
 			var dy = t.position.y - this.position.y;

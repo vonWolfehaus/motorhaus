@@ -16,7 +16,7 @@ var Bullet = function(settings) {
 	
 	// attributes
 	this.speed = 700;
-	this.damage = 50;
+	this.damage = 25;
 	this.hitpoints = 1; // how many points the owner gets if it hits another player
 	this.parent = null; // turret
 	this.pool = null; // automatically set by the pool itself
@@ -24,6 +24,7 @@ var Bullet = function(settings) {
 	Tools.merge(this, settings);
 	
 	this._owner = this.parent.parent;
+	this._sourceRect = new createjs.Rectangle(this._owner.id*diameter, 0, diameter, diameter);
 	
 	// base components
 	this.position = new Vec2();
@@ -31,7 +32,8 @@ var Bullet = function(settings) {
 	
 	// complex components
 	Kai.addComponent(this, ComponentType.TIMER, {
-		interval: 3000
+		interval: 3000,
+		repeat: 1
 	});
 	Kai.addComponent(this, ComponentType.BODY_RADIAL_COLLIDER2, {
 		mass: 1,
@@ -56,7 +58,7 @@ var Bullet = function(settings) {
 	this.view.configure({
 		regX: radius,
 		regY: radius,
-		sourceRect: new createjs.Rectangle(this._owner.id*diameter, 0, diameter, diameter)
+		sourceRect: this._sourceRect
 	});
 	
 	// limited life
@@ -85,11 +87,15 @@ Bullet.prototype = {
 		
 		this.active = true;
 		this.collisionScanner.active = true;
-		
-		this.body.collisionId = this._owner.collisionId;
+		// console.log(this._owner);
+		this.body.collisionId = this._owner.body.collisionId;
 		this.body.activate();
 		this.view.activate();
 		this.timer.activate();
+		this._sourceRect.x = this._owner.id*this.view.height;
+		this.view.configure({
+			sourceRect: this._scratchRect
+		});
 	},
 	
 	disable: function() {
@@ -119,13 +125,11 @@ Bullet.prototype = {
 	-------------------------------------------------------------------------------*/
 	
 	_onCollision: function(other) {
-		if (!other) {
-			this.disable();
-		} else if (other.entity.health) {
+		if (other && other.entity.health && other.entity.id !== this._owner.id) {
 			other.entity.health.change(-this.damage);
 			Kai.scoreboard.changeScore(this._owner.id, this.hitpoints);
-			this.disable();
 		}
+		this.disable();
 	}
 	
 };

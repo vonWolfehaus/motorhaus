@@ -49,9 +49,9 @@ Turret.prototype = {
 		this._pool.freeAll();
 	},
 	
-	fire: function(angle) {
+	fire: function(a) {
 		if (!this.active) return;
-		var angle = angle || Math.atan2(this.rotation.y, this.rotation.x);
+		var angle = a || Math.atan2(this.rotation.y, this.rotation.x);
 		var cos = Math.cos(angle), sin = Math.sin(angle);
 		var bullet = this._pool.get();
 		
