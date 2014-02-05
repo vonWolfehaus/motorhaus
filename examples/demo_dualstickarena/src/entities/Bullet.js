@@ -125,11 +125,14 @@ Bullet.prototype = {
 	-------------------------------------------------------------------------------*/
 	
 	_onCollision: function(other) {
-		if (other && other.entity.health && other.entity.id !== this._owner.id) {
+		if (!other) {
+			this.disable();
+			return;
+		} else if (other.entity.health && other.entity.id !== this._owner.id) {
 			other.entity.health.change(-this.damage);
 			Kai.scoreboard.changeScore(this._owner.id, this.hitpoints);
+			this.disable();
 		}
-		this.disable();
 	}
 	
 };

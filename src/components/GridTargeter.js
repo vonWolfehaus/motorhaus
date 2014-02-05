@@ -78,7 +78,7 @@ GridTargeter.prototype = {
 		node = this._nearby.first;
 		while (node) {
 			obj = node.obj;
-			if (obj && obj.collisionId !== this.collisionId) {
+			if (obj && obj.entity.id !== this.entity.id) {
 				this.target = obj;
 				return;
 			}
