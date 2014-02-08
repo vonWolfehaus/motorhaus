@@ -90,15 +90,16 @@ return function CollisionGrid(cellSize) {
 		}
 	};
 	
-	this.draw = function(ctx) {
+	this.draw = function(ctx, offsetX, offsetY) {
 		var i, j;
-		
+		offsetX = offsetX || 0;
+		offsetY = offsetY || 0;
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = 'rgba(0, 120, 120, 0.5)';
 		
 		for (i = 0; i < this.widthInCells; i++) {
 			for (j = 0; j < this.heightInCells; j++) {
-				ctx.strokeRect(i*this.cellPixelSize, j*this.cellPixelSize, this.cellPixelSize, this.cellPixelSize);
+				ctx.strokeRect((i*this.cellPixelSize)+offsetX, (j*this.cellPixelSize)+offsetY, this.cellPixelSize, this.cellPixelSize);
 			}
 		}
 	};

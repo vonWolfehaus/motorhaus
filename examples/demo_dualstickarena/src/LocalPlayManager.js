@@ -121,7 +121,7 @@ LocalPlayManager.prototype = {
 	},
 	
 	_padAdded: function(pad) {
-		this._respawnPlayer(pad.id);
+		// this._respawnPlayer(pad.id);
 		console.log('[DemoArenaShooter.padAdded] Player '+(pad.id+1)+' joined');
 	},
 	

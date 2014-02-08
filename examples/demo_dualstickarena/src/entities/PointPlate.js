@@ -18,9 +18,9 @@ var PointPlate = function(posx, posy) {
 	
 	// attributes
 	this.owner = null;
-	this.awardInterval = 4000;
+	this.awardInterval = 3000;
 	this.awardAmount = 10;
-	this.ownerTimeout = 6; // plate goes neutral after this time (* awardInterval)
+	this.ownerTimeout = 5; // plate goes neutral after this time (* awardInterval)
 	
 	this.supply = 10; // arbitrary points for how many minions this plate can support
 	this.cost = 1; // later, different minions will have various costs

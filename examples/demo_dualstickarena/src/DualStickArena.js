@@ -97,7 +97,7 @@ DualStickArena.prototype = {
 			displayObject: Kai.stage,
 			scalable: true,
 			minScale: 0.5,
-			scalePadding: World.width / 3,
+			scalePadding: World.width / 4,
 			bounds: null
 		});
 		
@@ -132,6 +132,7 @@ DualStickArena.prototype = {
 	
 	draw: function () {
 		Kai.stage.update();
+		// World.broadphase.draw(Kai.debugCtx, -World.camera.position.x, -World.camera.position.y);
 	},
 	
 	dispose: function() {

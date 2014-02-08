@@ -43,7 +43,7 @@ var Minion = function(settings) {
 		collisionId: this.uniqueId // with this the grid will ignore anything with the same id, like our bullets
 	});
 	Kai.addComponent(this, ComponentType.HEALTH, {
-		max: 200
+		max: 100
 	});
 	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
 		image: img,
@@ -61,8 +61,8 @@ var Minion = function(settings) {
 		jitterAngle: 0.5
 	});
 	Kai.addComponent(this, ComponentType.GRID_TARGETER, {
-		searchInterval: 1000,
-		scanRadius: 300
+		searchInterval: 500,
+		scanRadius: 800
 	});
 	
 	// unique component configuration
@@ -96,7 +96,6 @@ Minion.prototype = {
 		this.position.copy(pos);
 
 		this.view.activate();
-		// this.body.collisionId = owner.collisionId;
 		this.body.activate();
 		this.health.activate();
 		this.turret.activate();
@@ -110,8 +109,6 @@ Minion.prototype = {
 		this.view.configure({
 			sourceRect: this._scratchRect
 		});
-		this.body.collisionId = owner.collisionId;
-		console.log(this);
 	},
 	
 	disable: function() {
