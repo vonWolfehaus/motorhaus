@@ -74,17 +74,17 @@
 require.config({
 	baseUrl: '../../src', // engine
 	paths: {
-		'arena': '../examples/demo_dualstickarena/src'
+		'arena': '../examples/demo_arenapad/src'
 	}
 });
-require(['core/Engine', 'arena/DualStickArena'],
-function(Engine, DualStickArena) {
+require(['core/Engine', 'arena/ArenaPad'],
+function(Engine, ArenaPad) {
 	
 	var engine = new Engine();
 	
-	engine.state.add('DualStickArena', DualStickArena);
+	engine.state.add('ArenaPad', ArenaPad);
 	
-	engine.start('DualStickArena');
+	engine.start('ArenaPad');
 	
 });
 </script>

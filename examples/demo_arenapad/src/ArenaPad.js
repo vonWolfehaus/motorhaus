@@ -16,15 +16,15 @@ var PlayerScoreUI = require('arena/PlayerScoreUI');
 var PointPlate = require('arena/entities/PointPlate');
 
 
-var DualStickArena = function() {
+var ArenaPad = function() {
 	this.playManager = null;
 	
 };
 
-DualStickArena.prototype = {
+ArenaPad.prototype = {
 	
 	preload: function () {
-		console.log('[DualStickArena.preload]');
+		console.log('[ArenaPad.preload]');
 		Kai.load.image('players', 'img/players.png');
 		Kai.load.image('bullet', 'img/bullet.png');
 		Kai.load.image('tileset', 'img/hex_tiles_b0rked.png');
@@ -35,7 +35,7 @@ DualStickArena.prototype = {
 	},
 
 	create: function () {
-		console.log('[DualStickArena.create]');
+		console.log('[ArenaPad.create]');
 		
 		var canvas = document.getElementById('stage');
 		canvas.width = Kai.width;
@@ -120,7 +120,7 @@ DualStickArena.prototype = {
 		});
 		this.timer.onInterval.add(this._resetGame, this);*/
 		
-		console.log('[DualStickArena.create] Running');
+		console.log('[ArenaPad.create] Running');
 	},
 	
 	update: function () {
@@ -140,6 +140,6 @@ DualStickArena.prototype = {
 	}
 };
 
-return DualStickArena;
+return ArenaPad;
 
 });

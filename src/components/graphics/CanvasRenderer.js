@@ -11,7 +11,7 @@ var DOMTools = require('utils/DOMTools');
  * @param {int} [width] - The width of the canvas in pixels.
  * @param {int} [height] - The height of the canvas in pixels.
  */
-var Canvas2DRenderer = function(canvasId, width, height) {
+var CanvasRenderer = function(canvasId, width, height) {
 	// attributes
 	this.canvas = null;
 	this.ctx = null;
@@ -56,8 +56,8 @@ var Canvas2DRenderer = function(canvasId, width, height) {
 	DOMTools.copySpatial(canvas, debugCanvas);
 };
 
-Canvas2DRenderer.prototype = {
-	constructor: Canvas2DRenderer,
+CanvasRenderer.prototype = {
+	constructor: CanvasRenderer,
 	
 	activate: function() {
 		this.ctx = this.canvas.getContext('2d');
@@ -73,6 +73,6 @@ Canvas2DRenderer.prototype = {
 	}
 };
 
-return Canvas2DRenderer;
+return CanvasRenderer;
 
 });
