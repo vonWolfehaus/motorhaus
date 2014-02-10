@@ -19,6 +19,7 @@ var Minion = function(settings) {
 	
 	// attributes
 	this.fireRate = 500;
+	this.targetTime = 2000;
 	this.id = 0;
 	
 	Tools.merge(this, settings);
@@ -33,6 +34,8 @@ var Minion = function(settings) {
 	this.rotation = new Vec2();
 	
 	this._target = null;
+	this._timers = [];
+	this._targetTimer = null;
 	
 	// complex components
 	Kai.addComponent(this, ComponentType.BODY_RADIAL_COLLIDER2, {
@@ -56,7 +59,14 @@ var Minion = function(settings) {
 	Kai.addComponent(this, ComponentType.TIMER, {
 		interval: this.fireRate,
 		immediateDispatch: true
-	});
+	}, this._timers);
+	Kai.addComponent(this, ComponentType.TIMER, {
+		interval: this.targetTime,
+		repeat: 1,
+		immediateDispatch: false
+	}, this._timers);
+	this._targetTimer = this._timers[1];
+	
 	Kai.addComponent(this, ComponentType.WANDER_BEHAVIOR, {
 		maxSpeed: 190,
 		jitterAngle: 0.5
@@ -74,7 +84,9 @@ var Minion = function(settings) {
 	});
 	
 	this.health.onDeath.add(this._uponDeath, this);
-	this.timer.onInterval.add(this._timeToDance, this);
+	
+	this._timers[0].onInterval.add(this._timeToDance, this);
+	this._timers[1].onInterval.add(this._clearTarget, this);
 	
 	// other entities
 	this.turret = new Turret(this, {
@@ -100,7 +112,8 @@ Minion.prototype = {
 		this.body.activate();
 		this.health.activate();
 		this.turret.activate();
-		this.timer.activate();
+		this._timers[0].activate();
+		this._timers[1].activate();
 		this.wander.activate();
 		this.gridTargeter.activate();
 		
@@ -120,13 +133,10 @@ Minion.prototype = {
 		this.body.disable();
 		this.view.disable();
 		this.turret.disable();
-		this.timer.disable();
+		this._timers[0].disable();
+		this._timers[1].disable();
 		this.wander.disable();
 		this.gridTargeter.disable();
-	},
-	
-	changeState: function(newState) {
-		
 	},
 	
 	dispose: function() {
@@ -144,9 +154,23 @@ Minion.prototype = {
 									PRIVATE: EVENTS
 	-------------------------------------------------------------------------------*/
 	
+	_clearTarget: function() {
+		var t = this.gridTargeter.target;
+		if (this.gridTargeter.target) {
+			this.gridTargeter.target = null;
+		}
+	},
+	
 	_timeToDance: function() {
 		var t = this.gridTargeter.target;
-		if (!t) return;
+		if (!t) {
+			this._targetTimer.active = false;
+			return;
+		}
+		if (!this._targetTimer.active) {
+			this._targetTimer.activate();
+		}
+		
 		t = t.entity;
 		if (t.id === this.id) return;
 		if (t.active) {

@@ -73,6 +73,7 @@ GridTargeter.prototype = {
 	
 	_findTarget: function() {
 		var node, obj, m;
+		this._nearby.clear();
 		this._grid.getNearby(this.position, this.scanRadius, this._nearby);
 		
 		node = this._nearby.first;

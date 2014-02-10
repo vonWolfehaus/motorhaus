@@ -36,22 +36,27 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 			return this.components[i];
 		},
 		
-		addComponent: function(entity, compDef, options) {
+		// arr is an optional param, where the component will push itself to if present, otherwise it will attach directly to the entity
+		addComponent: function(entity, compDef, options, arr) {
 			var prop = compDef.accessor,
 				compInstance = null;
 			
 			options = options || null;
 			
-			if (!entity.hasOwnProperty(prop)) {
-				// console.log('[Kai] Adding '+prop);
-				compInstance = new compDef.proto(entity, options);
+			if (entity.hasOwnProperty(prop)) {
+				console.warn('[Kai] '+prop+' already exists on entity');
+				return;
+			}
+			
+			compInstance = new compDef.proto(entity, options);
+			this.registerComponent(compDef.index).add(compInstance);
+			
+			if (typeof arr === 'undefined') {
 				entity[prop] = compInstance;
 				
-				this.registerComponent(compDef.index).add(compInstance);
-				
-			} /*else console.log('[Kai] '+prop+' already exists on entity');*/
-			
-			return entity[prop];
+			} else {
+				arr.push(compInstance);
+			}
 		},
 		
 		removeComponent: function(entity, compDef) {
