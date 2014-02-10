@@ -5,6 +5,7 @@ var Kai = require('core/Kai');
 var ComponentType = require('components/ComponentDef');
 var Tools = require('utils/Tools');
 var MathTools = require('math/MathTools');
+var Rectangle = require('math/Rectangle');
 
 var Turret = require('./Turret');
 
@@ -23,7 +24,7 @@ var Minion = function(settings) {
 	Tools.merge(this, settings);
 	
 	this._owner = null;
-	this._scratchRect = new createjs.Rectangle(0, 0, diameter, diameter);
+	this._scratchRect = new Rectangle(0, 0, diameter, diameter);
 	
 	// base components
 	this.position = new Vec2();

@@ -151,7 +151,6 @@ GamepadPlayer.prototype = {
 		// console.log(this.pad.buttons[btn]);
 		switch (btn) {
 			case XBOX.A:
-				// console.log('Player '+this.id+': A is down: '+val);
 				// console.log(this.turret._pool.toString());
 				// console.log(World.camera.scale);
 				break;

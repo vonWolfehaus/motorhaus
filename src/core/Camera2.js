@@ -153,6 +153,8 @@ Camera2.prototype = {
 			this.displayObject.scaleY = this.scale;
 		}
 		
+		// this.displayObject.position.x = -this.position.x;
+		// this.displayObject.position.y = -this.position.y;
 		this.displayObject.x = -this.position.x;
 		this.displayObject.y = -this.position.y;
 	},

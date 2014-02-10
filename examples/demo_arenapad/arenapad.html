@@ -68,6 +68,7 @@
 
 <script type="text/javascript" src="../../src/lib/easeljs-0.7.1.min.js"></script>
 <script type="text/javascript" src="../../src/lib/require.js"></script>
+<!-- <script type="text/javascript" src="../../src/lib/von-canvas2d.js"></script> -->
 <script type="text/javascript">
 // --allow-file-access --allow-file-access-from-files --disable-web-security --allow-running-insecure-content --allow-sandbox-debugging --incognito --enable-extension-timeline-api
 // open /Applications/Google\ Chrome\ Canary.app --args --disable-web-security -–allow-file-access-from-files
@@ -77,7 +78,7 @@ require.config({
 		'arena': '../examples/demo_arenapad/src'
 	}
 });
-require(['core/Engine', 'arena/ArenaPad'],
+require(['core/Engine', 'arena/ArenaPad'/*, 'math/Matrix2', 'math/Point2'*/],
 function(Engine, ArenaPad) {
 	
 	var engine = new Engine();

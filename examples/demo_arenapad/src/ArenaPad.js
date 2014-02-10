@@ -10,6 +10,9 @@ var MathTools = require('math/MathTools');
 var DebugDraw = require('utils/DebugDraw');
 var Rectangle = require('math/Rectangle');
 
+// var Container = require('Container');
+// var Sprite = require('Sprite');
+
 var LocalPlayManager = require('arena/LocalPlayManager');
 var Scoreboard = require('arena/Scoreboard');
 var PlayerScoreUI = require('arena/PlayerScoreUI');
@@ -18,7 +21,7 @@ var PointPlate = require('arena/entities/PointPlate');
 
 var ArenaPad = function() {
 	this.playManager = null;
-	
+	// this.ctx = null;
 };
 
 ArenaPad.prototype = {
@@ -40,6 +43,7 @@ ArenaPad.prototype = {
 		var canvas = document.getElementById('stage');
 		canvas.width = Kai.width;
 		canvas.height = Kai.height;
+		// this.ctx = canvas.getContext('2d');
 		
 		// game world
 		World.set({
@@ -51,6 +55,7 @@ ArenaPad.prototype = {
 		
 		World.broadphase = new Grid(150);
 		
+		// Kai.stage = new Container();
 		Kai.stage = new createjs.Stage(canvas);
 		
 		// "tilemap", just the background
@@ -66,7 +71,7 @@ ArenaPad.prototype = {
 			tile = new createjs.Bitmap(Kai.cache.getImage('tileset'));
 			tile.x = x * tileWidth;
 			tile.y = y * tileHeight;
-			tile.sourceRect = new createjs.Rectangle(/*MathTools.randomInt(0, 4)*tileWidth*/0, 0, tileWidth, tileHeight)
+			tile.sourceRect = new Rectangle(/*MathTools.randomInt(0, 4)*tileWidth*/0, 0, tileWidth, tileHeight)
 			
 			bgLayer.addChild(tile);
 			
@@ -131,6 +136,8 @@ ArenaPad.prototype = {
 	},
 	
 	draw: function () {
+		// this.ctx.clearRect(0, 0, Kai.width, Kai.height);
+		// Kai.stage.draw();
 		Kai.stage.update();
 		// World.broadphase.draw(Kai.debugCtx, -World.camera.position.x, -World.camera.position.y);
 	},

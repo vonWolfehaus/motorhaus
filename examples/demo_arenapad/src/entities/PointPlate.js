@@ -26,7 +26,7 @@ var PointPlate = function(posx, posy) {
 	this.cost = 1; // later, different minions will have various costs
 	
 	this.buildRadius = 100;
-	this.buildAmount = 10;
+	this.buildAmount = 5;
 	
 	// base components
 	this.position = new Vec2(posx, posy);
@@ -52,7 +52,7 @@ var PointPlate = function(posx, posy) {
 		immediateDispatch: true
 	});
 	
-	this._scratchRect = new createjs.Rectangle(4*diameter, 0, diameter, diameter);
+	this._scratchRect = new Rectangle(4*diameter, 0, diameter, diameter);
 	// unique component configuration
 	this.view.configure({
 		regX: radius,

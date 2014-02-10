@@ -24,7 +24,7 @@ var Bullet = function(settings) {
 	Tools.merge(this, settings);
 	
 	this._owner = this.parent.parent;
-	this._sourceRect = new createjs.Rectangle(this._owner.id*diameter, 0, diameter, diameter);
+	this._sourceRect = new Rectangle(this._owner.id*diameter, 0, diameter, diameter);
 	
 	// base components
 	this.position = new Vec2();
