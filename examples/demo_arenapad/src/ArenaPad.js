@@ -33,8 +33,6 @@ ArenaPad.prototype = {
 		Kai.load.image('tileset', 'img/hex_tiles_b0rked.png');
 		Kai.load.image('pointplate', 'img/point_plate.png');
 		Kai.load.image('minions', 'img/minions.png');
-		
-		// crimson land?
 	},
 
 	create: function () {

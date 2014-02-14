@@ -2,7 +2,7 @@ define(function(require) {
 	
 // imports
 var Kai = require('core/Kai');
-var ComponentType = require('components/ComponentDef');
+var ComponentType = require('components/VonComponents');
 var Tools = require('utils/Tools');
 var MathTools = require('math/MathTools');
 var Rectangle = require('math/Rectangle');

@@ -2,7 +2,7 @@ define(function(require) {
 	
 // imports
 var Kai = require('core/Kai');
-var ComponentDef = require('components/ComponentDef');
+var VonComponents = require('components/VonComponents');
 var MathTools = require('math/MathTools');
 
 // constructor
@@ -22,8 +22,8 @@ var Circle = function(posx, posy) {
 	this.velocity = new Vec2(MathTools.random(this.speed), MathTools.random(this.speed));
 	
 	// complex components
-	Kai.addComponent(this, ComponentDef.OCAN_CIRCLE, sharedAttr); // view
-	Kai.addComponent(this, ComponentDef.BODY_RADIAL_COLLIDER2, sharedAttr); // body
+	Kai.addComponent(this, VonComponents.OCAN_CIRCLE, sharedAttr); // view
+	Kai.addComponent(this, VonComponents.BODY_RADIAL_COLLIDER2, sharedAttr); // body
 	
 };
 
@@ -44,8 +44,8 @@ Circle.prototype = {
 		// remove signal callbacks
 		
 		// dispose components
-		Kai.removeComponent(this, ComponentDef.OCAN_CIRCLE);
-		Kai.removeComponent(this, ComponentDef.BODY_RADIAL_COLLIDER2);
+		Kai.removeComponent(this, VonComponents.OCAN_CIRCLE);
+		Kai.removeComponent(this, VonComponents.BODY_RADIAL_COLLIDER2);
 		
 		// null references
 		this.position = null;

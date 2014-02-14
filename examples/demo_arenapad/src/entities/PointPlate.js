@@ -2,7 +2,7 @@ define(function(require) {
 	
 // imports
 var Kai = require('core/Kai');
-var ComponentType = require('components/ComponentDef');
+var ComponentType = require('components/VonComponents');
 var MathTools = require('math/MathTools');
 var DualPool = require('utils/DualPool');
 

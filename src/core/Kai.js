@@ -28,12 +28,25 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 		ready: false, // true when all systems are go
 		inputBlocked: true, // always block input while states are loading
 		
-		registerComponent: function(i) {
-			if (!!this.components[i]) {
-				return this.components[i];
+		
+		/**
+		 * Utility that properly constructs a hash from the passed array, so it can be used by addComponent.
+		 */
+		registerComponents: function(list) {
+			var i, len = list.length,
+				comp,
+				exportedComponents = {};
+			
+			for (i = 0; i < len; i++) {
+				comp = list[i];
+				exportedComponents[comp.className] = {
+					accessor: comp.accessor,
+					proto: comp,
+					index: i
+				};
 			}
-			this.components[i] = new LinkedList();
-			return this.components[i];
+			
+			return exportedComponents;
 		},
 		
 		// arr is an optional param, where the component will push itself to if present, otherwise it will attach directly to the entity
@@ -49,7 +62,7 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 			}
 			
 			compInstance = new compDef.proto(entity, options);
-			this.registerComponent(compDef.index).add(compInstance);
+			this._registerComponent(compDef.index).add(compInstance);
 			
 			if (typeof arr === 'undefined') {
 				entity[prop] = compInstance;
@@ -67,7 +80,15 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 				entity[prop].dispose();
 				entity[prop] = null;
 			}
-		}
+		},
+		
+		_registerComponent: function(i) {
+			if (!!this.components[i]) {
+				return this.components[i];
+			}
+			this.components[i] = new LinkedList();
+			return this.components[i];
+		},
 		
 	};
 	

@@ -2,7 +2,7 @@ define(function(require) {
 	
 // imports
 var Kai = require('core/Kai');
-var ComponentDef = require('components/ComponentDef');
+var VonComponents = require('components/VonComponents');
 var MathTools = require('math/MathTools');
 var Tools = require('utils/Tools');
 
@@ -26,8 +26,8 @@ var Box3 = function(pos, settings) {
 	this.velocity = new THREE.Vector3();
 	
 	// complex components
-	Kai.addComponent(this, ComponentDef.THREE_CUBE, sharedAttr); // view
-	Kai.addComponent(this, ComponentDef.AABB3, sharedAttr); // body
+	Kai.addComponent(this, VonComponents.THREE_CUBE, sharedAttr); // view
+	Kai.addComponent(this, VonComponents.AABB3, sharedAttr); // body
 	
 };
 
@@ -46,8 +46,8 @@ Box3.prototype = {
 	
 	dispose: function() {
 		// dispose components
-		Kai.removeComponent(this, ComponentDef.THREE_CUBE);
-		Kai.removeComponent(this, ComponentDef.AABB3);
+		Kai.removeComponent(this, VonComponents.THREE_CUBE);
+		Kai.removeComponent(this, VonComponents.AABB3);
 		
 		// null references
 		this.position = null;

@@ -3,7 +3,7 @@ define(function(require) {
 
 // imports
 var Kai = require('core/Kai');
-// var Tower = require('core/CommTower');
+var Tower = require('core/CommTower');
 var StateManager = require('core/StateManager');
 
 var RAF = require('utils/RequestAnimationFrame');
@@ -61,10 +61,12 @@ Engine.prototype = {
 		window.addEventListener('focus', function(evt) {
 			self._paused = false;
 			// console.log('window has focus');
+			Tower.resume.dispatch();
 		}, false);
 		window.addEventListener('blur', function(evt) {
 			self._paused = true;
 			// console.log('window lost focus');
+			Tower.pause.dispatch();
 		}, false);
 		
 		// init global components
@@ -110,24 +112,26 @@ Engine.prototype = {
 				Kai.debugCtx.clearRect(0, 0, Kai.width, Kai.height);
 			}
 			
-			// go through each list of components
-			for (i = 0; i < len; i++) {
-				if (!list[i]) continue;
-				
-				// and update each component within this list
-				node = list[i].first;
-				while (node) {
-					obj = node.obj;
-					if (obj.active) {
-						obj.update();
-					}
-					node = node.next;
-				}
-			}
-			
 			if (this.state.ready) {
+				// go through each list of components
+				for (i = 0; i < len; i++) {
+					if (!list[i]) continue;
+					
+					// and update each component within this list
+					node = list[i].first;
+					while (node) {
+						obj = node.obj;
+						if (obj.active) {
+							obj.update();
+						}
+						node = node.next;
+					}
+				}
+				
 				// update the state now that all components are fresh
 				this.state.update();
+			} else {
+				// update transition state?
 			}
 			
 			if (Kai.renderHook) {

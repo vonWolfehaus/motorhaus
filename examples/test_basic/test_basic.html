@@ -29,19 +29,21 @@
 <canvas id="debug"></canvas>
 
 
-<script type="text/javascript" src="src/lib/require.js"></script>
+<script type="text/javascript" src="../../lib/easeljs-0.7.1.min.js"></script>
+<script type="text/javascript" src="../../dist/von-component-min.js"></script>
+<script type="text/javascript" src="../../lib/require.js"></script>
 <script type="text/javascript">
 require.config({
-	baseUrl: 'src',
+	baseUrl: '.',
 });
-require(['core/Engine', 'TestState'],
-	function(Engine, TestState) {
+require(['TestBasic'],
+	function(TestBasic) {
 		
-		var engine = new Engine();
+		var engine = new von.core_Engine();
 		
-		engine.state.add('TestState', TestState);
+		engine.state.add('Start', TestBasic);
 		
-		engine.start('TestState');
+		engine.start('Start');
 		
 });
 </script>

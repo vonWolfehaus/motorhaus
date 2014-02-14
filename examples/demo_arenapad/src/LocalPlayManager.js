@@ -2,7 +2,7 @@ define(function(require) {
 	
 // imports
 var Kai = require('core/Kai');
-var ComponentType = require('components/ComponentDef');
+var ComponentType = require('components/VonComponents');
 var GamepadController = require('components/input/GamepadController');
 var World = require('entities/World');
 
