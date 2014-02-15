@@ -1,6 +1,9 @@
-/**
- * Global state resources object that also manages components. No idea why I called it 'Kai'.
- */
+/*
+	Global state resources object that also manages components. No idea why I called it 'Kai'.
+	I consider this the most important part of the engine, since it makes the whole entity-component thing work.
+	
+	@author Corey Birnbaum
+*/
 define(['require', 'math/Vec2', 'core/LinkedList'],
 		function(require) {
 	
@@ -19,8 +22,9 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 		debugCtx: null, // optional, for debug drawing components
 		debugMessages: true, // will log core activity if true
 		
-		components: [],
-		postComponents: [],
+		components: [], // we manipulate lists of ALL components here (even postUpdate ones)...
+		componentsSorted: [], // ...but Engine iterates through this array which is sorted by update priority
+		postComponents: [], // this is also sorted, but we merely reference lists from this.components
 		componentDefinitions: [],
 		numComponents: 0,
 		
@@ -30,14 +34,9 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 		ready: false, // true when all systems are go
 		inputBlocked: true, // always block input while states are loading
 		
-		/**
-		 * Very handy utility that not only makes sure the entity has the component you're looking for, but will add it
-		 * to the entity for you if it isn't already there. If the component doesn't exist (which happens a lot when 
-		 * creating a lot of components, as you forget to add them to the definition module, such as VonComponents),
-		 * it will kindly remind you.
-		 *
-		 * If you're not looking for a component and instead expect a regular type of object, pass in that object's prototype
-		 * as the third parameter and it will either return what's already on the entity, or instantiate it for you.
+		/*
+			Very handy utility that not only makes sure the entity has the component you're looking for, but will add it to the entity for you if it isn't already there. If the component doesn't exist (which happens a lot when creating a lot of components, as you forget to add them to the definition module, such as VonComponents), it will kindly remind you.
+			If you're not looking for a component and instead expect a regular type of object, pass in that object's prototype as the third parameter and it will either return what's already on the entity, or instantiate it for you.
 		 */
 		expect: function(entity, prop, Clazz) {
 			var i;
@@ -75,17 +74,17 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 			return entity[prop];
 		},
 		
-		/**
-		 * Utility that properly constructs a hash from the passed array of prototypes, so it can be used by addComponent.
-		 * Creates a new home for a specific component type, where all instances of it will live and be accessed
-		 * from in Engine's `update()`.
-		 */
+		/*
+			Utility that properly constructs a hash from the passed array of prototypes, so it can be used by addComponent.
+			Creates a new home for a specific component type, where all instances of it will live and be accessed from in Engine's `update()`.
+		*/
 		registerComponents: function(factoryList) {
-			var i, k, list, len = factoryList.length,
+			var i, k, def, list, len = factoryList.length,
 				Factory, exportedComponents = {};
 			
 			for (i = 0; i < len; i++) {
 				Factory = factoryList[i];
+				
 				
 				k = this.numComponents;
 				exportedComponents[Factory.className] = {
@@ -94,6 +93,8 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 					index: k,
 					priority: Factory.priority // this is only used for sorting below
 				};
+				// we track number of components so that we can make multiple calls to this.registerComponents
+				// and not overwrite the previous components. this is necessary for supporting external component types
 				this.numComponents++;
 				
 				if (!!this.components[k]) {
@@ -102,12 +103,16 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 				
 				list = new LinkedList();
 				list.priority = Factory.priority;
+				// the order of this.components and this.componentDefinitions is extremely important,
+				// otherwise we'd be adding one component type into a list belonging to another component type...
 				this.components[k] = list;
 				this.componentDefinitions[k] = exportedComponents[Factory.className];
 				
+				// ...which is why we need to keep a different array of the lists that we *can* sort without
+				// causing a ruckus. once lists are created, we only add/remove instances to this.components, but
+				// they will also show up in this other sorted array, so everything works out
+				this.componentsSorted[k] = list;
 				if (Factory.post) {
-					list = new LinkedList();
-					list.priority = Factory.priority;
 					this.postComponents.push(list);
 				}
 				
@@ -116,20 +121,19 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 				}
 			}
 			
-			// sort arrays according to component priority
+			// sort arrays according to component priority; these are the ones we'll loop through in Engine
 			function compare(a, b) {
 				return a.priority - b.priority;
 			}
-			this.components.sort(compare);
+			this.componentsSorted.sort(compare);
 			this.postComponents.sort(compare);
-			this.componentDefinitions.sort(compare);
 			
 			return exportedComponents;
 		},
 		
-		/**
-		 * arr is an optional param, where the component will push itself to if present, otherwise it will attach directly to the entity
-		 */
+		/*
+			arr is an optional param, where the component will push itself to if present, otherwise it will attach directly to the entity
+		*/
 		addComponent: function(entity, compDef, options, arr) {
 			var prop = compDef.accessor,
 				compInstance = null;
@@ -154,10 +158,9 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 			}
 		},
 		
-		/**
-		 * Call this in your entity's `dispose()`, otherwise it will pollute the list and cause the Engine to iterate through
-		 * more objects than it has to, which could lead to performance degradation.
-		 */
+		/*
+			Call this in your entity's `dispose()`, otherwise it will pollute the list and cause the Engine to iterate through more objects than it has to, which could lead to performance degradation.
+		*/
 		removeComponent: function(entity, compDef) {
 			var prop = compDef.accessor;
 			

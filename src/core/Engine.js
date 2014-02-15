@@ -105,8 +105,7 @@ Engine.prototype = {
 	
 	update: function() {
 		var i, node, obj,
-			list = Kai.components,
-			// postList = Kai.postComponents,
+			list = Kai.componentsSorted,
 			len = list.length;
 		
 		if (this._paused) {
@@ -122,6 +121,12 @@ Engine.prototype = {
 				
 				// and update each component within this list
 				node = list[i].first;
+				
+				if (node && !node.obj.update) {
+					// this component type doesn't have an update function
+					continue;
+				}
+				
 				while (node) {
 					obj = node.obj;
 					if (obj.active) {
@@ -132,19 +137,20 @@ Engine.prototype = {
 			}
 			
 			// go through the components that are registered with a postUpdate()
-			/*len = postList.length;
+			list = Kai.postComponents;
+			len = list.length;
 			for (i = 0; i < len; i++) {
-				if (!postList[i]) continue;
+				if (!list[i]) continue;
 				
-				node = postList[i].first;
+				node = list[i].first;
 				while (node) {
 					obj = node.obj;
 					if (obj.active) {
-						obj.update();
+						obj.postUpdate();
 					}
 					node = node.next;
 				}
-			}*/
+			}
 			
 			// update the state now that all components are fresh
 			this.state.update();
