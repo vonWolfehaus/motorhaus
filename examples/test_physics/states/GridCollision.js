@@ -35,7 +35,7 @@ GridCollision.prototype = {
 			gravity: 0
 		});
 		
-		World.broadphase = new Grid(50);
+		World.broadphase = new Grid(60);
 		
 		for (var i = 0; i < 300; i++) {
 			o = new Circle({

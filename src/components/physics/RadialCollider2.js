@@ -48,6 +48,7 @@ var RadialColider2 = function(entity, settings) {
 RadialColider2.accessor = 'body'; // property name as it sits on an entity
 RadialColider2.className = 'BODY_RADIAL_COLLIDER2'; // name of component on the ComponenDef object
 RadialColider2.priority = 1; // general position in the engine's component array; lowest updated first
+RadialColider2.post = true; // whether or not this component will have postUpdate() called on it
 
 
 RadialColider2.prototype = {

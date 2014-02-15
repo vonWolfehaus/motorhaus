@@ -20,6 +20,7 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 		debugMessages: true, // will log core activity if true
 		
 		components: [],
+		postComponents: [],
 		componentDefinitions: [],
 		numComponents: 0,
 		
@@ -80,7 +81,7 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 		 * from in Engine's `update()`.
 		 */
 		registerComponents: function(factoryList) {
-			var i, k, len = factoryList.length,
+			var i, k, list, len = factoryList.length,
 				Factory, exportedComponents = {};
 			
 			for (i = 0; i < len; i++) {
@@ -90,7 +91,8 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 				exportedComponents[Factory.className] = {
 					accessor: Factory.accessor,
 					proto: Factory,
-					index: k
+					index: k,
+					priority: Factory.priority // this is only used for sorting below
 				};
 				this.numComponents++;
 				
@@ -98,13 +100,29 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 					continue;
 				}
 				
-				this.components[k] = new LinkedList();
+				list = new LinkedList();
+				list.priority = Factory.priority;
+				this.components[k] = list;
 				this.componentDefinitions[k] = exportedComponents[Factory.className];
+				
+				if (Factory.post) {
+					list = new LinkedList();
+					list.priority = Factory.priority;
+					this.postComponents.push(list);
+				}
 				
 				if (this.debugMessages) {
 					console.info('[Kai] Registered '+Factory.className);
 				}
 			}
+			
+			// sort arrays according to component priority
+			function compare(a, b) {
+				return a.priority - b.priority;
+			}
+			this.components.sort(compare);
+			this.postComponents.sort(compare);
+			this.componentDefinitions.sort(compare);
 			
 			return exportedComponents;
 		},

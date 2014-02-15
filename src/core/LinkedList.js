@@ -42,6 +42,7 @@ var LinkedList = function() {
 	this.length = 0;
 	this.objToNodeMap = {}; // a quick lookup list to map linked list nodes to objects
 	this.uniqueId = Date.now() + '' + Math.floor(Math.random()*1000);
+	this.priority = 0; // used by Kai to sort component list such that some are updated before others
 	
 	/**
 	 * Get the LinkedListNode for this object.
