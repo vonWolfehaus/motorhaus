@@ -20,6 +20,10 @@ var KeyboardController = require('components/input/KeyboardController');
  * @author Corey Birnbaum
  */
 var Engine = function() {
+	if (Kai.debugMessages) {
+		console.log('[Engine] Initializing');
+	}
+	
 	this.state = new StateManager();
 	this.raf = new RAF(this);
 	
@@ -54,7 +58,6 @@ Engine.prototype = {
 			return;
 		}
 		
-		console.log('[Engine.init] Ready');
 		document.removeEventListener('DOMContentLoaded', this._onInit);
 		window.removeEventListener('load', this._onInit);
 		
@@ -82,6 +85,10 @@ Engine.prototype = {
 		
 		Kai.inputBlocked = false;
 		
+		if (Kai.debugMessages) {
+			console.log('[Engine] Ready');
+		}
+		
 		this.raf.start();
 	},
 	
@@ -99,46 +106,57 @@ Engine.prototype = {
 	update: function() {
 		var i, node, obj,
 			list = Kai.components,
+			// postList = Kai.postComponents,
 			len = list.length;
 		
 		if (this._paused) {
-			// we check first because some states might simply be DOM only and not need this
-			if (Kai.renderHook) {
-				Kai.renderHook();
+			// going to freeze it on the last frame
+			// TODO: update a pause state? or remove this check and have the current state handle it?
+			return;
+		}
+		
+		if (this.state.ready) {
+			// go through each list of components
+			for (i = 0; i < len; i++) {
+				if (!list[i]) continue;
+				
+				// and update each component within this list
+				node = list[i].first;
+				while (node) {
+					obj = node.obj;
+					if (obj.active) {
+						obj.update();
+					}
+					node = node.next;
+				}
 			}
+			
+			// go through the components that are registered with a postUpdate()
+			/*len = postList.length;
+			for (i = 0; i < len; i++) {
+				if (!postList[i]) continue;
+				
+				node = postList[i].first;
+				while (node) {
+					obj = node.obj;
+					if (obj.active) {
+						obj.update();
+					}
+					node = node.next;
+				}
+			}*/
+			
+			// update the state now that all components are fresh
+			this.state.update();
 			
 		} else {
-			if (Kai.debugCtx) {
-				Kai.debugCtx.clearRect(0, 0, Kai.width, Kai.height);
-			}
-			
-			if (this.state.ready) {
-				// go through each list of components
-				for (i = 0; i < len; i++) {
-					if (!list[i]) continue;
-					
-					// and update each component within this list
-					node = list[i].first;
-					while (node) {
-						obj = node.obj;
-						if (obj.active) {
-							obj.update();
-						}
-						node = node.next;
-					}
-				}
-				
-				// update the state now that all components are fresh
-				this.state.update();
-			} else {
-				// update transition state?
-			}
-			
-			if (Kai.renderHook) {
-				Kai.renderHook();
-			}
+			// update transition state?
 		}
-
+		
+		// we check first because some states might simply be DOM only and not need this
+		if (Kai.renderHook) {
+			Kai.renderHook();
+		}
 	},
 	
 	dispose: function() {

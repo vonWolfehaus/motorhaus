@@ -7,7 +7,6 @@ var World = require('entities/World');
 var Grid = require('physics/CollisionGrid');
 var DOMTools = require('utils/DOMTools');
 var MathTools = require('math/MathTools');
-var DebugDraw = require('utils/DebugDraw');
 var Rectangle = require('math/Rectangle');
 
 // var Container = require('Container');

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body {
+			color: #fff;
+			background: #151515;
+			overflow: hidden;
+			text-align: center;
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+		}
+		canvas {
+			pointer-events: none;
+			
+		}
+	</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+
+
+<script type="text/javascript" src="../../lib/require.js"></script>
+<script type="text/javascript">
+require.config({
+	baseUrl: '../../src', // engine
+	paths: {
+		'demo': '../examples/test_physics'
+	}
+});
+require(['core/Engine', 'demo/states/GridCollision'], 
+	function(Engine, GridCollision) {
+		var engine = new Engine();
+		
+		engine.state.add('Start', GridCollision);
+		
+		engine.start('Start');
+	}
+);
+</script>
+</body>
+</html>

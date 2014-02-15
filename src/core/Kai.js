@@ -1,26 +1,27 @@
 /**
- * Global state resources. No idea why I called it 'Kai'.
+ * Global state resources object that also manages components. No idea why I called it 'Kai'.
  */
 define(['require', 'math/Vec2', 'core/LinkedList'],
 		function(require) {
 	
-	// var DebugDraw = require('utils/DebugDraw');
-	
 	return {
 		engine: null,
-		view: null, // the graphics manager (threejs, pixi, etc..)
+		stage: null, // the graphics manager (threejs, pixi, easel, etc..)
 		renderHook: null, // function that gets called to execute drawing once a tick
-		world: null,
+		world: null, // optional, defined in states
 		
 		mouse: null,
 		keys: null,
-		pads: null,
-		cache: null,
+		pads: null, // optional GamepadController, if you want
+		cache: null, // you don't need to worry about this
 		load: null, // resource manager
 		
 		debugCtx: null, // optional, for debug drawing components
+		debugMessages: true, // will log core activity if true
 		
 		components: [],
+		componentDefinitions: [],
+		numComponents: 0,
 		
 		width: window.innerWidth, // screen size (in pixels); renderer or state usually sets this
 		height: window.innerHeight,
@@ -28,28 +29,89 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 		ready: false, // true when all systems are go
 		inputBlocked: true, // always block input while states are loading
 		
+		/**
+		 * Very handy utility that not only makes sure the entity has the component you're looking for, but will add it
+		 * to the entity for you if it isn't already there. If the component doesn't exist (which happens a lot when 
+		 * creating a lot of components, as you forget to add them to the definition module, such as VonComponents),
+		 * it will kindly remind you.
+		 *
+		 * If you're not looking for a component and instead expect a regular type of object, pass in that object's prototype
+		 * as the third parameter and it will either return what's already on the entity, or instantiate it for you.
+		 */
+		expect: function(entity, prop, Clazz) {
+			var i;
+			if (!entity[prop]) {
+				if (!Clazz) {
+					// assume it's a component, so try to find it
+					for (i = 0; i < this.componentDefinitions.length; i++) {
+						Clazz = this.componentDefinitions[i];
+						if (Clazz.accessor === prop) {
+							// it's registered, so let's take this instance to use for its static properties to register a new one with
+							break;
+						}
+					}
+					
+					if (!Clazz) {
+						// didn't find it, must not have been registered yet
+						throw new Error('[Kai.expect] The component "'+prop+'" does not exist. You might have forgotten to create a component list object (just like VonComponents.js), or forgot to add this component to that list.');
+					}
+					
+					// add it for them
+					this.addComponent(entity, Clazz);
+					if (this.debugMessages) {
+						console.info('[Kai.expect] '+prop.toUpperCase()+' component was added to '+entity.toString()+' with default values');
+					}
+				
+				} else {
+					// just an object we can instantiate directly
+					entity[prop] = new Clazz();
+					if (this.debugMessages) {
+						console.info('[Kai.expect] A "'+prop+'" property was added to '+entity.toString()+' for you');
+					}
+				}
+			}
+			// return the entity's reference to the object so it can be shared with other components
+			return entity[prop];
+		},
 		
 		/**
-		 * Utility that properly constructs a hash from the passed array, so it can be used by addComponent.
+		 * Utility that properly constructs a hash from the passed array of prototypes, so it can be used by addComponent.
+		 * Creates a new home for a specific component type, where all instances of it will live and be accessed
+		 * from in Engine's `update()`.
 		 */
-		registerComponents: function(list) {
-			var i, len = list.length,
-				comp,
-				exportedComponents = {};
+		registerComponents: function(factoryList) {
+			var i, k, len = factoryList.length,
+				Factory, exportedComponents = {};
 			
 			for (i = 0; i < len; i++) {
-				comp = list[i];
-				exportedComponents[comp.className] = {
-					accessor: comp.accessor,
-					proto: comp,
-					index: i
+				Factory = factoryList[i];
+				
+				k = this.numComponents;
+				exportedComponents[Factory.className] = {
+					accessor: Factory.accessor,
+					proto: Factory,
+					index: k
 				};
+				this.numComponents++;
+				
+				if (!!this.components[k]) {
+					continue;
+				}
+				
+				this.components[k] = new LinkedList();
+				this.componentDefinitions[k] = exportedComponents[Factory.className];
+				
+				if (this.debugMessages) {
+					console.info('[Kai] Registered '+Factory.className);
+				}
 			}
 			
 			return exportedComponents;
 		},
 		
-		// arr is an optional param, where the component will push itself to if present, otherwise it will attach directly to the entity
+		/**
+		 * arr is an optional param, where the component will push itself to if present, otherwise it will attach directly to the entity
+		 */
 		addComponent: function(entity, compDef, options, arr) {
 			var prop = compDef.accessor,
 				compInstance = null;
@@ -57,12 +119,14 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 			options = options || null;
 			
 			if (entity.hasOwnProperty(prop)) {
-				console.warn('[Kai] '+prop+' already exists on entity');
+				if (this.debugMessages) {
+					console.warn('[Kai.addComponent] "'+prop+'" already exists on entity '+entity.toString());
+				}
 				return;
 			}
 			
 			compInstance = new compDef.proto(entity, options);
-			this._registerComponent(compDef.index).add(compInstance);
+			this.components[compDef.index].add(compInstance);
 			
 			if (typeof arr === 'undefined') {
 				entity[prop] = compInstance;
@@ -72,6 +136,10 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 			}
 		},
 		
+		/**
+		 * Call this in your entity's `dispose()`, otherwise it will pollute the list and cause the Engine to iterate through
+		 * more objects than it has to, which could lead to performance degradation.
+		 */
 		removeComponent: function(entity, compDef) {
 			var prop = compDef.accessor;
 			
@@ -80,15 +148,7 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 				entity[prop].dispose();
 				entity[prop] = null;
 			}
-		},
-		
-		_registerComponent: function(i) {
-			if (!!this.components[i]) {
-				return this.components[i];
-			}
-			this.components[i] = new LinkedList();
-			return this.components[i];
-		},
+		}
 		
 	};
 	

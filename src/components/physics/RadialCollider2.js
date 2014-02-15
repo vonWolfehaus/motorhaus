@@ -1,9 +1,11 @@
 define(function(require) {
 	
 // imports
+var Kai = require('core/Kai');
 var Tools = require('utils/Tools');
 var World = require('entities/World');
 var PhysicsConstants = require('physics/PhysicsConstants');
+var DebugDraw = require('utils/DebugDraw');
 
 // constructor
 var RadialColider2 = function(entity, settings) {
@@ -32,10 +34,10 @@ var RadialColider2 = function(entity, settings) {
 	this.entity = entity;
 	
 	// prerequisite components
-	this.position = entity.position;
-	this.velocity = entity.velocity;
+	this.position = Kai.expect(entity, 'position', Vec2);
+	this.velocity = Kai.expect(entity, 'velocity', Vec2);
 	if (this.hasAccel) {
-		this.accel = entity.accel;
+		this.accel = Kai.expect(entity, 'accel', Vec2);
 	}
 	
 	// init
@@ -139,8 +141,14 @@ RadialColider2.prototype = {
 				}
 				break;
 		}
-		
-		// DebugDraw.circle(this.position.x - World.camera.position.x, this.position.y - World.camera.position.y, this.radius);
+	},
+	
+	debugDraw: function(ctx) {
+		if (World.camera) {
+			DebugDraw.circle(ctx, this.position.x - World.camera.position.x, this.position.y - World.camera.position.y, this.radius);
+		} else {
+			DebugDraw.circle(ctx, this.position.x, this.position.y, this.radius);
+		}
 	},
 	
 	dispose: function() {

@@ -1,5 +1,6 @@
 define(function(require) {
 
+var Kai = require('core/Kai');
 var World = require('entities/World');
 var Physics = require('physics/Physics2');
 
@@ -90,17 +91,26 @@ return function CollisionGrid(cellSize) {
 		}
 	};
 	
-	this.draw = function(ctx, offsetX, offsetY) {
-		var i, j;
+	this.draw = function(offsetX, offsetY) {
+		var i, j, node,
+			ctx = Kai.debugCtx;
+		
 		offsetX = offsetX || 0;
 		offsetY = offsetY || 0;
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = 'rgba(0, 120, 120, 0.5)';
+		
+		ctx.lineWidth = 0.5;
+		ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 		
 		for (i = 0; i < this.widthInCells; i++) {
 			for (j = 0; j < this.heightInCells; j++) {
 				ctx.strokeRect((i*this.cellPixelSize)+offsetX, (j*this.cellPixelSize)+offsetY, this.cellPixelSize, this.cellPixelSize);
 			}
+		}
+		
+		node = _itemList.first;
+		while (node) {
+			node.obj.debugDraw(ctx);
+			node = node.next;
 		}
 	};
 	
