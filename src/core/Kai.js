@@ -2,7 +2,7 @@
 	Global state resources object that also manages components. No idea why I called it 'Kai'.
 	I consider this the most important part of the engine, since it makes the whole entity-component thing work.
 	
-	@author Corey Birnbaum
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
 */
 define(['require', 'math/Vec2', 'core/LinkedList'],
 		function(require) {

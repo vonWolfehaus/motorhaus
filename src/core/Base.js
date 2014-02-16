@@ -1,6 +1,8 @@
-/**
- * All game objects must extend this, since many core components assume these properties exist on everything.
- */
+/*
+	All game objects must extend this, since many core components assume these properties exist on everything.
+	
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
 define(function() {
 	var Base = function() {
 		// source: http://stackoverflow.com/questions/10726909/random-alpha-numeric-string-in-javascript

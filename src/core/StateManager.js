@@ -1,4 +1,8 @@
-
+/*
+	Handles game states. Also fires off resource loading done by states, and acts as proxy between the Engine and States.
+	
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
 define(function(require) {
 
 var Kai = require('core/Kai');
@@ -10,7 +14,8 @@ var Tower = require('core/CommTower');
 */
 var StateManager = function() {
 	this.states = {};
-	this.current = null;
+	this.currentIdx = null;
+	this.currentState = null;
 	this.ready = false;
 	
 	// list for keeping track of active and pending states.
@@ -29,7 +34,9 @@ StateManager.prototype = {
 	},
 
 	/**
-	 * Add a new State.
+	 * Add a new State by instantiating and storing it in an array for later access.
+	 * This is actually a really dumb thing to do, so I'll be changing it soon.
+	 * 
 	 * @param key {string} - A unique key you use to reference this state, i.e. "MainMenu", "Level1".
 	 * @param state {State} - The state you want to switch to.
 	 */
@@ -60,26 +67,23 @@ StateManager.prototype = {
 	},
 	
 	/**
-	 * Not sure about this.
+	 * Not sure about this. Should bind instead of forwarding a single fucking function.
 	 */
 	update: function() {
-		var state = this.states[this.current];
-		state.update();
+		this.currentState.update();
 	},
 	
 	/**
-	 * Since different states might use different ways rendering (dom, canvas, webgl, mix),
-	 * let's have them take care of it.
+	 * I seriously don't like this.
 	 */
 	draw: function() {
-		var state = this.states[this.current];
-		state.draw();
+		this.currentState.draw();
 	},
 	
 	/**
 	 * Load next state in queue. Received through CommTower.
 	 * @param {string} [key] - State name to load (as set in engine.state.add())
-	 * @param {boolean} [clearCache] - clear asset cache? (Default to false and ONLY available when clearWorld=true)
+	 * @param {boolean} [clearCache] - clear asset cache? (Default to false)
 	 */
 	switchState: function(key, clearCache) {
 		if (!this.states[key]) {
@@ -98,33 +102,27 @@ StateManager.prototype = {
 	},
 
 	next: function(clearCache) {
-		var state;
-		
 		if (this.queue.length === 0 || Kai.ready === false) {
 			// console.log('[StateManager.switchState] Queue: '+this.queue.length+'; Engine ready: '+Kai.ready);
 			return;
 		}
+		Kai.inputBlocked = true;
 		
 		if (clearCache) {
 			Kai.cache.dispose();
 		}
 		
-		if (!!this.current) {
-			state = this.states[this.current];
-			state.dispose();
+		if (!!this.currentIdx) {
+			this.currentState = this.states[this.currentIdx];
+			this.currentState.dispose();
 		}
 		
-		this.current = this.queue.shift();
-		
-		state = this.states[this.current];
+		this.currentIdx = this.queue.shift();
+		this.currentState = this.states[this.currentIdx];
 		
 		Kai.load.reset();
-		state.preload();
-		
-		Kai.inputBlocked = true;
-		
-		// when the loader is done, it will signal the CommTower
-		Kai.load.start();
+		this.currentState.preload();
+		Kai.load.start(); // when the loader is done, it will signal the CommTower
 	},
 	
 	/**
@@ -161,8 +159,7 @@ StateManager.prototype = {
 	},
 	
 	loadComplete: function() {
-		var state = this.states[this.current];
-		state.create();
+		this.currentState.create();
 		Kai.inputBlocked = false;
 		this.ready = true;
 	},

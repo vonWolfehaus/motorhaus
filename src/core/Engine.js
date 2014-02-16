@@ -1,4 +1,8 @@
-
+/*
+	The Engine holds the state manager, fires it off when the document is ready, and runs the one and only update loop. It ties all the other core modules together, setting everything up.
+	
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
 define(function(require) {
 
 // imports
@@ -110,7 +114,7 @@ Engine.prototype = {
 		
 		if (this._paused) {
 			// going to freeze it on the last frame
-			// TODO: update a pause state? or remove this check and have the current state handle it?
+			// TODO: update a pause state? or remove this check and have the current state handle it through signals?
 			return;
 		}
 		

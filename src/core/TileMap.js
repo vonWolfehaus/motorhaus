@@ -1,8 +1,9 @@
 define(['core/Kai', 'entities/Block'], function(Kai, Block) {
-
-// Simple array map. Collision is done by adding/removing collider components to the system at grid positions that have
-// less than 3 neighbors.
-
+/*
+	Simple array map. Collision is done by adding/removing collider components to the system at grid positions that have less than 3 neighbors.
+	
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
 return function TileMap(tileSize, tilesprite) {
 	
 	this.widthInTiles = Math.floor(Kai.width / tileSize) + 1;
