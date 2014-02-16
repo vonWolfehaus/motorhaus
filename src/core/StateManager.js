@@ -67,20 +67,6 @@ StateManager.prototype = {
 	},
 	
 	/**
-	 * Not sure about this. Should bind instead of forwarding a single fucking function.
-	 */
-	update: function() {
-		this.currentState.update();
-	},
-	
-	/**
-	 * I seriously don't like this.
-	 */
-	draw: function() {
-		this.currentState.draw();
-	},
-	
-	/**
 	 * Load next state in queue. Received through CommTower.
 	 * @param {string} [key] - State name to load (as set in engine.state.add())
 	 * @param {boolean} [clearCache] - clear asset cache? (Default to false)

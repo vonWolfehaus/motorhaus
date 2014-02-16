@@ -157,7 +157,7 @@ Engine.prototype = {
 			}
 			
 			// update the state now that all components are fresh
-			this.state.update();
+			this.state.currentState.update();
 			
 		} else {
 			// update transition state?
