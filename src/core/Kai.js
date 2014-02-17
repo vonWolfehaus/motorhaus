@@ -65,9 +65,9 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 				} else {
 					// just an object we can instantiate directly
 					entity[prop] = new Clazz();
-					if (this.debugMessages) {
+					/*if (this.debugMessages) {
 						console.info('[Kai.expect] A "'+prop+'" property was added to '+entity.toString()+' for you');
-					}
+					}*/
 				}
 			}
 			// return the entity's reference to the object so it can be shared with other components

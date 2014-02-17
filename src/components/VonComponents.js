@@ -23,7 +23,6 @@ define(
 		'components/physics/RadialCollider2',
 		'components/physics/CollisionGridScanner',
 		'components/Health',
-		'components/graphics/EASELBitmap',
 		'components/input/TwinStickMovement',
 		'components/Timer',
 		'components/behaviors/Wander',

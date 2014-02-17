@@ -150,8 +150,8 @@ Camera2.prototype = {
 		}
 		
 		if (this.scalable) {
-			this.displayObject.scaleX = this.scale;
-			this.displayObject.scaleY = this.scale;
+			this.displayObject.scale.x = this.scale;
+			this.displayObject.scale.y = this.scale;
 		}
 		
 		// this.displayObject.position.x = -this.position.x;
@@ -189,6 +189,8 @@ Camera2.prototype = {
 				this.target.y = (minY + maxY) * 0.5;
 				
 				if (this.scalable) {
+					this.scale = 1;
+					
 					w = maxX - minX + this.scalePadding;
 					h = maxY - minY + this.scalePadding;
 					
@@ -215,6 +217,7 @@ Camera2.prototype = {
 			} else if (activeLen === 1) {
 				this.target.x = lastActive.position.x;
 				this.target.y = lastActive.position.y;
+				this.scale = 1;
 			}
 		}
 		

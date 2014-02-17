@@ -6,6 +6,7 @@ var ComponentType = require('components/VonComponents');
 var MathTools = require('math/MathTools');
 var DualPool = require('utils/DualPool');
 
+var CustomType = require('arena/CustomComponents');
 var Minion = require('./Minion');
 
 // constructor
@@ -22,7 +23,6 @@ var PointPlate = function(posx, posy) {
 	this.awardAmount = 10;
 	this.ownerTimeout = 5; // plate goes neutral after this time (* awardInterval)
 	
-	this.supply = 10; // arbitrary points for how many minions this plate can support
 	this.cost = 1; // later, different minions will have various costs
 	
 	this.buildRadius = 100;
@@ -33,10 +33,11 @@ var PointPlate = function(posx, posy) {
 	this.velocity = new Vec2();
 	
 	// complex components
-	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
+	Kai.addComponent(this, CustomType.VIEW_VON_SPRITE, {
 		image: img,
 		width: diameter,
-		height: diameter
+		height: diameter,
+		container: Kai.layer
 	});
 	Kai.addComponent(this, ComponentType.BODY_RADIAL_COLLIDER2, {
 		mass: 0,
@@ -55,18 +56,15 @@ var PointPlate = function(posx, posy) {
 	this._scratchRect = new Rectangle(4*diameter, 0, diameter, diameter);
 	// unique component configuration
 	this.view.configure({
-		regX: radius,
-		regY: radius,
-		sourceRect: this._scratchRect
+		frame: this._scratchRect
 	});
 	
 	this.collisionScanner.onCollision.add(this._onCollision, this);
 	this.timer.onInterval.add(this._awardPoints, this);
 	
-	this._currentSupply = this.supply;
 	this._pool = new DualPool(Minion, {
 		parent: this
-	}, 5);
+	}, 0);
 	
 	// always on
 	this.view.activate();
@@ -91,8 +89,11 @@ PointPlate.prototype = {
 		if (this.owner) {
 			this.owner.requestMinion.remove(this._buildMinion, this);
 		}
-		this._currentSupply = this.supply;
 		this.owner = owner;
+		
+		// build one immediately
+		this._buildMinion(owner);
+		
 		this.timer.activate();
 		this.owner.requestMinion.add(this._buildMinion, this);
 		this._neutralityTimer = 0;
@@ -126,7 +127,7 @@ PointPlate.prototype = {
 	
 	_buildMinion: function(player) {
 		// console.log(this.position.distanceTo(player.position));
-		if (this._currentSupply >= this.cost && this.position.distanceTo(player.position) < this.buildRadius) {
+		if (player.activeMinions < player.maxMinion && this.position.distanceTo(player.position) < this.buildRadius) {
 			if (Kai.scoreboard.getScore(player.id) >= this.buildAmount) {
 				Kai.scoreboard.changeScore(this.owner.id, -this.buildAmount);
 				
@@ -134,7 +135,7 @@ PointPlate.prototype = {
 				minion.activate(this.position, this.owner);
 				minion.health.onDeath.addOnce(this._onMinionDeath, this);
 				
-				this._currentSupply -= this.cost;
+				player.activeMinions++;
 				
 			} else {
 				// console.log('not enough points');
@@ -143,7 +144,10 @@ PointPlate.prototype = {
 	},
 	
 	_onMinionDeath: function(minion, amount) {
-		this._currentSupply += this.cost;
+		// HOW ARE WE LOSING OWNER CONNECTION??
+		if (minion.owner) {
+			minion.owner.activeMinions--;			
+		}
 	},
 	
 	_onCollision: function(other) {

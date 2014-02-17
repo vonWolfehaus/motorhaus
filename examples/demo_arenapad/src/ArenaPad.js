@@ -9,9 +9,6 @@ var DOMTools = require('utils/DOMTools');
 var MathTools = require('math/MathTools');
 var Rectangle = require('math/Rectangle');
 
-// var Container = require('Container');
-// var Sprite = require('Sprite');
-
 var LocalPlayManager = require('arena/LocalPlayManager');
 var Scoreboard = require('arena/Scoreboard');
 var PlayerScoreUI = require('arena/PlayerScoreUI');
@@ -37,12 +34,7 @@ ArenaPad.prototype = {
 	create: function () {
 		console.log('[ArenaPad.create]');
 		
-		var canvas = document.getElementById('stage');
-		canvas.width = Kai.width;
-		canvas.height = Kai.height;
-		// this.ctx = canvas.getContext('2d');
-		
-		// game world
+		// game world attributes
 		World.set({
 			width: Kai.width * 2,
 			height: Kai.height * 2,
@@ -50,10 +42,11 @@ ArenaPad.prototype = {
 			gravity: 0
 		});
 		
+		// add collision detection
 		World.broadphase = new Grid(150);
 		
-		// Kai.stage = new Container();
-		Kai.stage = new createjs.Stage(canvas);
+		var canvas = document.getElementById('stage');
+		Kai.stage = new von2d.Stage(Kai.width, Kai.height, canvas);
 		
 		// "tilemap", just the background
 		var i, x = 0, y = 0,
@@ -63,12 +56,18 @@ ArenaPad.prototype = {
 		this.heightInTiles = Math.floor(World.height / tileHeight) + 1;
 		this.numTiles = this.widthInTiles * this.heightInTiles;
 		
-		var tile, bgLayer = new createjs.Container();
+		var mainLayer = new von2d.Container();
+		
+		// add a new global so we can add objects to it
+		Kai.layer = mainLayer;
+		
+		var tile, bgLayer = new von2d.Container();
+		
 		for (i = 0; i < this.numTiles; i++) {
-			tile = new createjs.Bitmap(Kai.cache.getImage('tileset'));
-			tile.x = x * tileWidth;
-			tile.y = y * tileHeight;
-			tile.sourceRect = new Rectangle(/*MathTools.randomInt(0, 4)*tileWidth*/0, 0, tileWidth, tileHeight)
+			tile = new von2d.Sprite(Kai.cache.getImage('tileset'));
+			tile.position.x = x * tileWidth;
+			tile.position.y = y * tileHeight;
+			tile.frame = new Rectangle(/*MathTools.randomInt(0, 4)*tileWidth*/0, 0, tileWidth, tileHeight)
 			
 			bgLayer.addChild(tile);
 			
@@ -78,7 +77,9 @@ ArenaPad.prototype = {
 				y++;
 			}
 		}
-		Kai.stage.addChild(bgLayer);
+		
+		mainLayer.addChild(bgLayer);
+		
 		
 		// point plates
 		var numPlates = 4, radius = World.width / 2 - 200,
@@ -96,7 +97,7 @@ ArenaPad.prototype = {
 		this.ui = new PlayerScoreUI();
 		
 		World.camera = new Camera({
-			displayObject: Kai.stage,
+			displayObject: mainLayer,
 			scalable: true,
 			minScale: 0.5,
 			scalePadding: World.width / 4,
@@ -113,7 +114,7 @@ ArenaPad.prototype = {
 		DOMTools.copySpatial(canvas, debugCanvas);
 		// END DEBUG
 		
-		
+		Kai.stage.addChild(mainLayer);
 		
 		// game management
 		/*Kai.addComponent(this, ComponentType.TIMER, {
@@ -133,9 +134,7 @@ ArenaPad.prototype = {
 	},
 	
 	draw: function () {
-		// this.ctx.clearRect(0, 0, Kai.width, Kai.height);
-		// Kai.stage.draw();
-		Kai.stage.update();
+		Kai.stage.draw();
 		// World.broadphase.draw(Kai.debugCtx, -World.camera.position.x, -World.camera.position.y);
 	},
 	

@@ -6,6 +6,8 @@ var ComponentType = require('components/VonComponents');
 var Tools = require('utils/Tools');
 var PhysicsConstants = require('physics/PhysicsConstants');
 
+var CustomType = require('arena/CustomComponents');
+
 // constructor
 var Bullet = function(settings) {
 	require('core/Base').call(this);
@@ -15,7 +17,7 @@ var Bullet = function(settings) {
 	var diameter = radius * 2;
 	
 	// attributes
-	this.speed = 700;
+	this.speed = 500;
 	this.damage = 25;
 	this.hitpoints = 1; // how many points the owner gets if it hits another player
 	this.parent = null; // turret
@@ -33,7 +35,7 @@ var Bullet = function(settings) {
 	// complex components
 	Kai.addComponent(this, ComponentType.TIMER, {
 		interval: 3000,
-		repeat: 1
+		repeat: 0
 	});
 	Kai.addComponent(this, ComponentType.BODY_RADIAL_COLLIDER2, {
 		mass: 1,
@@ -48,17 +50,16 @@ var Bullet = function(settings) {
 	Kai.addComponent(this, ComponentType.COLLISION_SCANNER_RADIAL, {
 		scanRadius: diameter * 2
 	});
-	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
+	Kai.addComponent(this, CustomType.VIEW_VON_SPRITE, {
 		image: img,
 		width: diameter,
-		height: diameter
+		height: diameter,
+		container: Kai.layer
 	});
 	
 	// unique component configuration
 	this.view.configure({
-		regX: radius,
-		regY: radius,
-		sourceRect: this._sourceRect
+		frame: this._sourceRect
 	});
 	
 	// limited life

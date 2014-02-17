@@ -6,6 +6,7 @@ var ComponentType = require('components/VonComponents');
 var MathTools = require('math/MathTools');
 var World = require('entities/World');
 
+var CustomType = require('arena/CustomComponents');
 var Turret = require('./Turret');
 
 // constructor
@@ -20,6 +21,9 @@ var GamepadPlayer = function(pos, padId) {
 	this.id = padId;
 	this.pad = Kai.pads.controllers[padId];
 	this.fireRate = 130;
+	
+	this.maxMinion = 5; // minion points, not number of minions per se
+	this.activeMinions = 0;
 	
 	// base components
 	this.position = new Vec2();
@@ -49,17 +53,16 @@ var GamepadPlayer = function(pos, padId) {
 		pad: this.pad, 
 		speed: 100
 	});
-	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
+	Kai.addComponent(this, CustomType.VIEW_VON_SPRITE, {
 		image: img,
 		width: diameter,
-		height: diameter
+		height: diameter,
+		container: Kai.layer
 	});
 	
 	// unique component configuration
 	this.view.configure({
-		regX: radius,
-		regY: radius,
-		sourceRect: new createjs.Rectangle(this.id*diameter, 0, diameter, diameter)
+		frame: new von2d.Rectangle(this.id*diameter, 0, diameter, diameter)
 	});
 	
 	// other entities

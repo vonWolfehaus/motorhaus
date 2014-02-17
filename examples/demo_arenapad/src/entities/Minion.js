@@ -7,6 +7,7 @@ var Tools = require('utils/Tools');
 var MathTools = require('math/MathTools');
 var Rectangle = require('math/Rectangle');
 
+var CustomType = require('arena/CustomComponents');
 var Turret = require('./Turret');
 
 // constructor
@@ -49,10 +50,11 @@ var Minion = function(settings) {
 	Kai.addComponent(this, ComponentType.HEALTH, {
 		max: 100
 	});
-	Kai.addComponent(this, ComponentType.VIEW_EASEL_BITMAP, {
+	Kai.addComponent(this, CustomType.VIEW_VON_SPRITE, {
 		image: img,
 		width: diameter,
-		height: diameter
+		height: diameter,
+		container: Kai.layer
 	});
 	
 	// ai components
@@ -78,9 +80,7 @@ var Minion = function(settings) {
 	
 	// unique component configuration
 	this.view.configure({
-		regX: radius,
-		regY: radius,
-		sourceRect: this._scratchRect
+		frame: this._scratchRect
 	});
 	
 	this.health.onDeath.add(this._uponDeath, this);
