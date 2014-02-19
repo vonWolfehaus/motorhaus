@@ -11,13 +11,16 @@ gulp.task('build', function() {
 			return require('amdclean').clean({
 				code: contents,
 				removeAllRequires: true,
+				prefixTransform: function(moduleName) {
+					return moduleName.substring(moduleName.lastIndexOf('_') + 1, moduleName.length);
+				},
 				globalObject: true,
 				globalObjectName: 'von'/*,
 				globalModules: []*/
 			});
 		},
 		out: 'von-component-min.js',
-		// optimize: 'uglify2',
+		optimize: 'uglify2',
 		// generateSourceMaps: true,
 		// preserveLicenseComments: false,
 		findNestedDependencies: true,
@@ -26,7 +29,7 @@ gulp.task('build', function() {
 			endFile: 'wrapper/outro.js'
 		}*/
 	}) // thanks to rjs optimizer for sucking at optimizing, or at least the gulp plugin of it
-		.pipe(uglify(/*{outSourceMap: true}*/)) 
+		// .pipe(uglify(/*{outSourceMap: true}*/)) 
 		.pipe(gulp.dest('dist/'));
 });
 

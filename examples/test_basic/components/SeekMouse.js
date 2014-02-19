@@ -4,13 +4,13 @@
 define(function(require) {
 	
 // imports
-var Kai = von.core_Kai;
-var Tools = von.utils_Tools;
+var Kai = von.Kai;
+var Tools = von.Tools;
 
 // constructor
 var SeekMouse = function(entity, settings) {
 	// augment with Base
-	von.core_Base.call(this);
+	von.Base.call(this);
 	
 	// attributes
 	this.speed = 10;

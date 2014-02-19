@@ -1,7 +1,7 @@
 define(function(require) {
 
 // imports
-var Kai = von.core_Kai;
+var Kai = von.Kai;
 
 var Beetle = require('Beetle');
 

@@ -1,14 +1,14 @@
 define(function(require) {
 	
 // imports
-var Kai = von.core_Kai;
-var VonComponents = von.components_VonComponents;
+var Kai = von.Kai;
+var VonComponents = von.VonComponents;
 
 var CustomComponents = require('components/CustomComponents');
 
 // constructor
 var Beetle = function() {
-	von.core_Base.call(this);
+	von.Base.call(this);
 	
 	var img = Kai.cache.getImage('beetle');
 	var radius = Math.floor(img.height / 2);
@@ -23,7 +23,7 @@ var Beetle = function() {
 	this.rotation = new Vec2();
 	
 	// complex components
-	Kai.addComponent(this, VonComponents.VIEW_EASEL_BITMAP, {
+	Kai.addComponent(this, CustomComponents.VIEW_EASEL_BITMAP, {
 		image: img,
 		width: diameter,
 		height: diameter
