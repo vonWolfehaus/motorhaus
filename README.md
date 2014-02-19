@@ -2,6 +2,8 @@
 
 This is a framework for prototyping games that I'm building out over time for kicks, mainly to see how far I can push the entity component pattern.
 
+I recommend going with [Phaser](https://github.com/photonstorm/phaser) for a full HTML5 engine.
+
 ## Architecture overview
 
 If you're familiar with [Unity3D](http://unity3d.com/), you'll have an easier time understanding what's going on here. **The important point is that all the action happens in components.** Entities are merely the strings that tie together a set of components.
