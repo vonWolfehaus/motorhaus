@@ -1,8 +1,10 @@
 var gulp = require('gulp');
 var rjs = require('gulp-requirejs');
 var uglify = require('gulp-uglify');
+var rename = require('gulp-rename');
+var fs = require('fs');
 
-gulp.task('build', function() {
+gulp.task('dev', function() {
 	rjs({
 		baseUrl: 'src',
 		name: 'core/Engine',
@@ -19,8 +21,8 @@ gulp.task('build', function() {
 				globalModules: []*/
 			});
 		},
-		out: 'von-component-min.js',
-		optimize: 'uglify2',
+		out: 'von-component.js',
+		// optimize: 'uglify2', // thanks to rjs optimizer for sucking at optimizing, or at least the gulp plugin of it
 		// generateSourceMaps: true,
 		// preserveLicenseComments: false,
 		findNestedDependencies: true,
@@ -28,22 +30,21 @@ gulp.task('build', function() {
 			startFile: 'wrapper/banner.js',
 			endFile: 'wrapper/outro.js'
 		}*/
-	}) // thanks to rjs optimizer for sucking at optimizing, or at least the gulp plugin of it
-		// .pipe(uglify(/*{outSourceMap: true}*/)) 
-		.pipe(gulp.dest('dist/'));
-});
-
-// don't include almond so requirejs can be used and everything is out in the open
-gulp.task('debug', function() {
-	rjs({
-		baseUrl: 'src',
-		name: 'core/Engine',
-		out: 'von-component.js',
-		include: ['components/VonComponents'],
-		wrap: false
 	})
-		.pipe(uglify())
 		.pipe(gulp.dest('dist/'));
 });
 
-gulp.task('default', ['build']);
+gulp.task('release', ['dev'], function() {
+	var min = 'dist/von-component.min.js';
+	if (fs.existsSync(min)) {
+		fs.unlinkSync(min);
+	}
+	
+	gulp.src('dist/von-component.js')
+		.pipe(uglify(/*{ outSourceMap: true }*/))
+		.pipe(rename({ suffix: '.min' }))
+		.pipe(gulp.dest('dist/'));
+});
+
+
+gulp.task('default', ['release']);

@@ -8,7 +8,7 @@ define(function(require) {
 
 // imports
 var Kai = require('core/Kai');
-var World = require('entities/World');
+var World = require('core/World');
 var MathTools = require('math/MathTools');
 var Tools = require('utils/Tools');
 var Rectangle = require('math/Rectangle');

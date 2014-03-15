@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body {
+			color: #fff;
+			background: #151515;
+			overflow: hidden;
+			text-align: center;
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+		}
+		canvas {
+			pointer-events: none;
+			
+		}
+	</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+<canvas id="debug"></canvas>
+
+
+<script type="text/javascript" src="../../lib/von2d.min.js"></script>
+<script type="text/javascript" src="../../lib/require.js"></script>
+<script type="text/javascript">
+require.config({
+	baseUrl: '../../src', // engine
+	paths: {
+		'ai': '../examples/test_steering/src'
+	}
+});
+require(['core/Engine', 'ai/SteeringTest'],
+function(Engine, SteeringTest) {
+	
+	var engine = new von.Engine();
+	
+	engine.state.add('Test', SteeringTest);
+	
+	engine.start('Test');
+		
+});
+</script>
+</body>
+</html>

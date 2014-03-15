@@ -2,7 +2,7 @@ define(function(require) {
 	
 // imports
 var Tools = require('utils/Tools');
-var World = require('entities/World');
+var World = require('core/World');
 
 // constructor
 var AABB2 = function(entity, settings) {
@@ -44,7 +44,7 @@ var AABB2 = function(entity, settings) {
 // required statics for component system
 AABB2.accessor = 'body'; // property name as it sits on an entity
 AABB2.className = 'BODY_AABB2'; // name of component on the ComponenDef object
-AABB2.priority = 1; // general position in the engine's component array; lowest updated first
+AABB2.priority = 100; // general position in the engine's component array; lowest updated first
 
 
 AABB2.prototype = {

@@ -1,5 +1,6 @@
 define(function() {
 	return {
+		PI: Math.PI,
 		TAU: Math.PI * 2,
 		
 		clamp: function(val, min, max) {
@@ -26,6 +27,16 @@ define(function() {
 				return Math.floor((Math.random() * min) - (min * 0.5));
 			}
 			return Math.floor(Math.random() * (max - min + 1) + min);
+		},
+		
+		getShortRotation: function(angle) {
+			angle %= this.TAU;
+			if (angle > this.PI) {
+				angle -= this.TAU;
+			} else if (angle < -this.PI) {
+				angle += this.TAU;
+			}
+			return angle;
 		}
 	};
 });

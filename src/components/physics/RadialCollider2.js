@@ -3,7 +3,7 @@ define(function(require) {
 // imports
 var Kai = require('core/Kai');
 var Tools = require('utils/Tools');
-var World = require('entities/World');
+var World = require('core/World');
 var PhysicsConstants = require('physics/PhysicsConstants');
 var DebugDraw = require('utils/DebugDraw');
 
@@ -48,7 +48,7 @@ var RadialColider2 = function(entity, settings) {
 RadialColider2.accessor = 'body'; // property name as it sits on an entity
 RadialColider2.className = 'BODY_RADIAL_COLLIDER2'; // name of component on the ComponenDef object
 RadialColider2.priority = 100; // general position in the engine's component array; lowest updated first
-RadialColider2.post = true; // whether or not this component will have postUpdate() called on it
+RadialColider2.post = false; // whether or not this component will have postUpdate() called on it
 
 
 RadialColider2.prototype = {
@@ -79,7 +79,7 @@ RadialColider2.prototype = {
 		}
 	},
 	
-	postUpdate: function() {
+	update: function() {
 		this.velocity.y += World.gravity * World.elapsed;
 		
 		if (this.hasAccel) {

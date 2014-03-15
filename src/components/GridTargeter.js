@@ -4,7 +4,7 @@
 define(function(require) {
 	
 // imports
-var World = require('entities/World');
+var World = require('core/World');
 var Tools = require('utils/Tools');
 
 // constructor

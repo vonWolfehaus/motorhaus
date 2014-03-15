@@ -1,7 +1,7 @@
 define(function(require) {
 
 var Kai = require('core/Kai');
-var World = require('entities/World');
+var World = require('core/World');
 var Physics = require('physics/Physics2');
 
 /**

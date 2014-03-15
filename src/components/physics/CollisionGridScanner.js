@@ -2,7 +2,7 @@ define(function(require) {
 	
 // imports
 var Tools = require('utils/Tools');
-var World = require('entities/World');
+var World = require('core/World');
 var Physics = require('physics/Physics2');
 
 // constructor

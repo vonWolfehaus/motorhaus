@@ -3,11 +3,10 @@ define(function(require) {
 // imports
 var Tools = require('utils/Tools');
 
-// constructor
-var Timer = function(entity, settings) {
-	// augment with Base
-	require('core/Base').call(this);
-	
+/*
+	Basic timer for use on components.
+*/
+var Timer = function(settings) {
 	// attributes
 	this.repeat = -1; // set to -1 to repeat forever
 	this.immediateDispatch = false;
@@ -19,42 +18,19 @@ var Timer = function(entity, settings) {
 	this.onInterval = new Signal();
 	
 	// private properties
-	this.entity = entity;
 	this._timer = 0;
 	this._numTicks = 0;
 	this._currentRepeat = this.repeat;
-	
-	this.disable();
 };
-
-// required statics for component system
-Timer.accessor = 'timer'; // property name as it sits on an entity
-Timer.className = 'TIMER'; // name of component on the ComponenDef object
-Timer.priority = 13; // general position in the engine's component array; updated according to ascending order
-
 
 Timer.prototype = {
 	constructor: Timer,
 	
-	activate: function() {
+	start: function() {
 		this._timer = performance.now();
-		this.active = true;
 		this._currentRepeat = this.repeat;
 		this._numTicks = 0;
 		if (this.immediateDispatch) {
-			this._numTicks++;
-			this.onInterval.dispatch(this._numTicks);
-		}
-	},
-	
-	disable: function() {
-		this.active = false;
-	},
-	
-	reset: function() {
-		this._timer = performance.now();
-		this._numTicks = 0;
-		if (this.active && this.immediateDispatch) {
 			this._numTicks++;
 			this.onInterval.dispatch(this._numTicks);
 		}
@@ -79,7 +55,6 @@ Timer.prototype = {
 		
 		// null references
 		this.onInterval = null;
-		this.entity = null;
 	}
 };
 

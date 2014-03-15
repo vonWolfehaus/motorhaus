@@ -28,7 +28,7 @@ var ComponentThing = function(entity, settings) {
 // required statics for component system
 ComponentThing.accessor = 'thing'; // property name as it sits on an entity
 ComponentThing.className = 'THING_COMPONENT'; // name of component on the component definition object
-ComponentThing.priority = 10; // general position in the engine's component array; the lower, the earlier it's updated
+ComponentThing.priority = 10; // general position in the engine's component array; updated in ascending order
 ComponentThing.post = false; // whether or not this component will have a postUpdate() called on it
 
 

@@ -25,7 +25,7 @@ define(
 		'components/Health',
 		'components/input/TwinStickMovement',
 		'components/Timer',
-		'components/behaviors/Wander',
+		'components/ai/Wander',
 		'components/GridTargeter'
 	],
 	function() {
