@@ -97,15 +97,15 @@ var Steering = {
 	},
 	
 	cohere: function(agent, flock) {
-		var i, a, distance, neighboursCount = 0;
-		var node = flock.first;
+		var i, a, distance,
+			neighboursCount = 0,
+			node = flock.first;
 		
 		this._sumForce.x = 0;
 		this._sumForce.y = 0;
-		var neighboursCount = 0;
 
 		while (node) {
-			var a = node.obj.entity.boid;
+			a = node.obj.entity.boid;
 			if (a !== agent && a.groupID === agent.groupID) {
 				distance = agent.position.distanceTo(a.position);
 				if (distance < agent.maxCohesion) {
@@ -143,7 +143,6 @@ var Steering = {
 		while (node) {
 			var a = node.obj.entity.boid;
 			if (a !== agent) {
-				// debugger;
 				var distance = agent.position.distanceTo(a.position);
 				if (distance < agent.minSeparation && distance > 0) {
 					// vector to other agent
@@ -237,8 +236,8 @@ var Steering = {
 	},
 	
 	/*followLeader: function(agent, leader, flock) {
-		var tv 		:Vector3D 	= leader.velocity.clone();
-		var force 	:Vector3D	= new Vector3D();
+		var tv :Vector3D = leader.velocity.clone();
+		var force :Vector3D = new Vector3D();
 		
 		tv.normalize();
 		tv.scaleBy(LEADER_BEHIND_DIST);
