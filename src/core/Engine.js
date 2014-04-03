@@ -119,6 +119,9 @@ Engine.prototype = {
 		}
 		
 		if (this.state.ready) {
+			if (Kai.debugCtx) {
+				Kai.debugCtx.clearRect(0, 0, Kai.width, Kai.height);
+			}
 			// go through each list of components
 			for (i = 0; i < len; i++) {
 				if (!list[i]) continue;
@@ -141,7 +144,7 @@ Engine.prototype = {
 			}
 			
 			// go through the components that are registered with a postUpdate()
-			list = Kai.postComponents;
+			/*list = Kai.postComponents;
 			len = list.length;
 			for (i = 0; i < len; i++) {
 				if (!list[i]) continue;
@@ -154,13 +157,13 @@ Engine.prototype = {
 					}
 					node = node.next;
 				}
-			}
+			}*/
 			
 			// update the state now that all components are fresh
 			this.state.currentState.update();
 			
 		} else {
-			// update transition state?
+			// update a stock transition state?
 		}
 		
 		// we check first because some states might simply be DOM only and not need this

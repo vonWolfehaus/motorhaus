@@ -14,7 +14,7 @@ var Tower = require('core/CommTower');
 */
 var StateManager = function() {
 	this.states = {};
-	this.currentIdx = null;
+	this.currentStateName = null;
 	this.currentState = null;
 	this.ready = false;
 	
@@ -40,22 +40,14 @@ StateManager.prototype = {
 	 * @param key {string} - A unique key you use to reference this state, i.e. "MainMenu", "Level1".
 	 * @param state {State} - The state you want to switch to.
 	 */
-	add: function(key, state) {
-		var newState;
-		
-		if (typeof state === 'object') {
-			newState = state;
-		} else if (typeof state === 'function') {
-			newState = new state();
-		}
-		
-		if (this.checkState(key, newState) === false) {
+	add: function(key, StateObj) {
+		if (this.checkState(key, StateObj) === false) {
 			return;
 		}
 		
-		this.states[key] = newState;
-
-		return newState;
+		this.states[key] = StateObj;
+		
+		return StateObj;
 	},
 
 	/**
@@ -89,7 +81,7 @@ StateManager.prototype = {
 
 	next: function(clearCache) {
 		if (this.queue.length === 0 || Kai.ready === false) {
-			// console.log('[StateManager.switchState] Queue: '+this.queue.length+'; Engine ready: '+Kai.ready);
+			console.log('[StateManager.next] Queue length: '+this.queue.length+'; Engine ready: '+Kai.ready);
 			return;
 		}
 		Kai.inputBlocked = true;
@@ -98,13 +90,13 @@ StateManager.prototype = {
 			Kai.cache.dispose();
 		}
 		
-		if (!!this.currentIdx) {
-			this.currentState = this.states[this.currentIdx];
+		if (!!this.currentStateName) {
+			this.currentState = this.states[this.currentStateName];
 			this.currentState.dispose();
 		}
 		
-		this.currentIdx = this.queue.shift();
-		this.currentState = this.states[this.currentIdx];
+		this.currentStateName = this.queue.shift();
+		this.currentState = this.states[this.currentStateName];
 		
 		Kai.load.reset();
 		this.currentState.preload();
@@ -123,15 +115,18 @@ StateManager.prototype = {
 			return false;
 		}
 		
+		if (typeof state === 'function') {
+			console.error('[StateManager.switchState] States must be object literals, not functions');
+			return false;
+		}
+		
 		if (!!state) {
-			if (state['preload'] && state['create'] && state['update'] &&
-			    state['draw'] && state['dispose']) {
-				
+			if (state.preload && state.create && state.update && state.dispose) {
 				valid = true;
 			}
 			
 			if (!valid) {
-				console.error('[StateManager.checkState] Invalid State "'+key+'" given. Must contain all required functions.');
+				console.error('[StateManager.checkState] Invalid State "'+key+'" given. Must contain all required functions: preload, create, update, dispose');
 				return false;
 			}
 

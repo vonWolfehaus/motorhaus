@@ -57,6 +57,12 @@ Circle.prototype = {
 		// null references
 		this.position = null;
 		this.velocity = null;
+	},
+	
+	_applyImpulse: function () {
+		var a = Math.atan2(this.position.y - Kai.mouse.position.y, this.position.x - Kai.mouse.position.x);
+		this.accel.x += Math.cos(a) * 2000;
+		this.accel.y += Math.sin(a) * 2000;
 	}
 	
 };

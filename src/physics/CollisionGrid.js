@@ -98,7 +98,7 @@ return function CollisionGrid(cellSize) {
 		offsetX = offsetX || 0;
 		offsetY = offsetY || 0;
 		
-		ctx.lineWidth = 0.5;
+		ctx.lineWidth = 1;
 		ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 		
 		for (i = 0; i < this.widthInCells; i++) {

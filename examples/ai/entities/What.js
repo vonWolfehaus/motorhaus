@@ -8,8 +8,13 @@ var MathTools = require('math/MathTools');
 var Steering = require('ai/Steering');
 
 // constructor
-var Minion = function(posx, posy) {
+var SeekBoid = function(posx, posy) {
 	require('core/Base').call(this);
+	
+	// private
+	var img = Kai.cache.getImage('beetle');
+	var radius = Math.floor(img.height / 2);
+	var diameter = radius * 2;
 	
 	// attributes
 	this.speed = 1;
@@ -19,20 +24,25 @@ var Minion = function(posx, posy) {
 	this.velocity = new Vec2(MathTools.random(this.speed), MathTools.random(this.speed));
 	
 	// complex components
-	// Kai.addComponent(this, CustomComponents.SELECTOR_USER_MOUSE);
 	Kai.addComponent(this, VonComponents.BOID);
 	Kai.addComponent(this, VonComponents.STACK_FSM);
 	Kai.addComponent(this, VonComponents.BODY_RADIAL_COLLIDER2, {
 		radius: 25,
 		restitution: 0.4
 	});
+	Kai.addComponent(this, CustomType.VIEW_VON_SPRITE, {
+		image: img,
+		width: diameter,
+		height: diameter,
+		container: Kai.layer
+	});
 	
 	this.stackFSM.pushState(Steering.Wander);
 };
 
 
-Minion.prototype = {
-	constructor: Minion,
+SeekBoid.prototype = {
+	constructor: SeekBoid,
 	
 	/*-------------------------------------------------------------------------------
 									PUBLIC
@@ -122,6 +132,6 @@ Minion.prototype = {
 	
 };
 
-return Minion;
+return SeekBoid;
 
 });

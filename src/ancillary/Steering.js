@@ -1,7 +1,10 @@
 define(function(require) {
 
 // imports
+var Kai = require('core/Kai');
 var Vec2 = require('math/Vec2');
+var MathTools = require('math/MathTools');
+var DebugDraw = require('utils/DebugDraw');
 
 /*
 	Static class of functions for steering agents according to a set of base behaviors.
@@ -17,121 +20,170 @@ var Vec2 = require('math/Vec2');
 var Steering = {
 	// cache of objects for reuse; there are a set for each function so they don't get overwritten
 	_sumForce: new Vec2(),
-	_zeroVec: new Vec2(), // don't use
+	_desiredVec: new Vec2(),
+	_scratchVec: new Vec2(),
 	
-	seek: function(agent, dest) {
-		if (dest.x === agent.position.x && dest.y === agent.position.y) {
-			return this._zeroVec;
+	_wanderVec: new Vec2(),
+	_seperationForce: new Vec2(),
+	_cohereForce: new Vec2(),
+	_alignForce: new Vec2(),
+	_wanderAngle: 0,
+	
+	seek: function(agent, dest, slowingRadius) {
+		var distance = agent.position.distanceTo(dest);
+		slowingRadius = slowingRadius || 0;
+		
+		if (distance < 7) {
+			// friction should bring the agent to a full stop
+			agent.velocity.multiplyScalar(0.9);
+			return;
 		}
 		
-		//Desired change of location
-		var desired = dest.Copy().Subtract(agent.position());
-		//Desired velocity (move there at maximum speed)
-		desired.Multiply(agent.maxSpeed / desired.Length());
-		//The velocity change we want
-		var velocityChange = desired.Subtract(agent.velocity());
-		//Convert to a force
-		return velocityChange.Multiply(agent.maxForce / agent.maxSpeed);
+		this._desiredVec.copy(dest).subtract(agent.position);
+		this._desiredVec.normalize();
+		
+		if (distance < slowingRadius) {
+			this._desiredVec.multiplyScalar(agent.maxForce * (distance / slowingRadius));
+			agent.velocity.multiplyScalar(0.9); // apply friction to fight velocity (ie brake)
+		} else {
+			this._desiredVec.multiplyScalar(agent.maxForce);
+		}
+		
+		agent.steeringForce.add(this._desiredVec);
 	},
 	
-	separate: function(agent, flock) {
-		var neighboursCount = 0;
-		this._sumForce.x = 0;
-		this._sumForce.y = 0;
+	flee: function(agent, dest) {
+		this._desiredVec.copy(agent.position).subtract(dest);
+		this._desiredVec.normalize().multiplyScalar(agent.maxForce);
+		
+		agent.steeringForce.add(this._desiredVec);
+	},
+	
+	align: function(agent, flock) {
+		var i, a, distance, neighboursCount = 0;
+		var node = flock.first;
+		this._alignForce.x = 0;
+		this._alignForce.y = 0;
 
-		for (var i = 0; i < flock.length; i++) {
-			var a = flock[i];
-			if (a != agent) {
-				var distance = agent.position().DistanceTo(a.position());
-				if (distance < agent.minSeparation && distance > 0) {
-					//Vector to other agent
-					var pushForce = agent.position().Copy().Subtract(a.position());
-					var length = pushForce.Normalize(); //Normalize returns the original length
-					var r = (agent.radius + a.radius);
-
-					this._sumForce.Add(pushForce.Multiply(1 - ((length - r) / (agent.minSeparation - r))));//agent.minSeparation)));
-					//this._sumForce.Add(pushForce.Multiply(1 - (length / agent.minSeparation)));
-					//this._sumForce.Add(pushForce.Divide(agent.radius));
-
-					neighboursCount++;
-				}
+		// for each of our neighbors (including self)...
+		while (node) {
+			a = node.obj.entity.boid;
+			if (a.groupID !== agent.groupID) {
+				node = node.next;
+				continue;
 			}
+			
+			distance = agent.position.distanceTo(a.position);
+			// ...that are within the max distance and are moving...
+			if (distance < agent.maxCohesion && a.velocity.getLength() > 0) {
+				// ...sum up our headings
+				this._scratchVec.copy(a.velocity);
+				this._scratchVec.normalize();
+				this._alignForce.add(this._scratchVec);
+				neighboursCount++;
+			}
+			node = node.next;
 		}
 
-		if (neighboursCount == 0) {
-			return this._zeroVec;
+		if (neighboursCount === 0) {
+			return this._alignForce; // zero
 		}
 
-		return this._sumForce.Multiply(agent.maxForce / neighboursCount);
+		// divide to get the average heading
+		this._alignForce.divideScalar(neighboursCount);
+		this._alignForce.multiplyScalar(agent.maxForce);
+		
+		return this._alignForce;
 	},
 	
 	cohere: function(agent, flock) {
-		//Start with just our position
-		//agent.position().Copy();
+		var i, a, distance, neighboursCount = 0;
+		var node = flock.first;
+		
 		this._sumForce.x = 0;
 		this._sumForce.y = 0;
 		var neighboursCount = 0;
 
-		for (var i = 0; i < flock.length; i++) {
-			var a = flock[i];
-			if (a !== agent && a.group === agent.group) {
-				var distance = agent.position.distanceTo(a.position);
+		while (node) {
+			var a = node.obj.entity.boid;
+			if (a !== agent && a.groupID === agent.groupID) {
+				distance = agent.position.distanceTo(a.position);
 				if (distance < agent.maxCohesion) {
 					// sum up the position of our neighbors
 					this._sumForce.add(a.position);
 					neighboursCount++;
 				}
 			}
+			node = node.next;
 		}
 
 		if (neighboursCount === 0) {
-			return this._zeroVec;
+			this._cohereForce.x = 0;
+			this._cohereForce.y = 0;
+			return;
 		}
 
 		// get the average position of ourself and our neighbors
 		this._sumForce.divideScalar(neighboursCount);
 
 		// seek that position
-		return this.seek(agent, this._sumForce);
+		this._cohereForce.copy(this._sumForce).subtract(agent.position);
+		this._cohereForce.normalize().multiplyScalar(agent.maxForce);
+		
+		return this._cohereForce;
 	},
 	
-	align: function(agent, flock) {
-		var averageHeading = new B2Vec2();
+	separate: function(agent, flock) {
 		var neighboursCount = 0;
+		var node = flock.first;
+		
+		this._seperationForce.x = 0;
+		this._seperationForce.y = 0;
+		
+		while (node) {
+			var a = node.obj.entity.boid;
+			if (a !== agent) {
+				// debugger;
+				var distance = agent.position.distanceTo(a.position);
+				if (distance < agent.minSeparation && distance > 0) {
+					// vector to other agent
+					this._scratchVec.copy(a.position).subtract(agent.position);
+					// var length = this._scratchVec.normalize();
+					var length = this._scratchVec.getLength();
+					var r = agent.minSeparation + a.minSeparation;
+					
+					this._scratchVec.multiplyScalar(1 - ((length - r) / (agent.minSeparation - r)));
+					this._seperationForce.x += this._scratchVec.x;
+					this._seperationForce.y += this._scratchVec.y;
 
-		//for each of our neighbours (including ourself)
-		for (var i = 0; i < flock.length; i++) {
-			var a = flock[i];
-			var distance = agent.position().DistanceTo(a.position());
-			//That are within the max distance and are moving
-			if (distance < agent.maxCohesion && a.velocity().Length() > 0 && a.group == agent.group) {
-				//Sum up our headings
-				var head = a.velocity().Copy();
-				head.Normalize();
-				averageHeading.Add(head);
-				neighboursCount++;
+					neighboursCount++;
+				}
 			}
+			node = node.next;
 		}
 
-		if (neighboursCount == 0) {
-			return averageHeading; //Zero
+		if (neighboursCount === 0) {
+			return this._seperationForce;
 		}
 
-		//Divide to get the average heading
-		averageHeading.Divide(neighboursCount);
-
-		//Steer towards that heading
-		return steerTowards(agent, averageHeading);
+		this._seperationForce.multiplyScalar(agent.maxForce / neighboursCount);
+		
+		return this._seperationForce;
 	},
 	
-	steerTowards: function(agent, desiredDirection) {
-		//Multiply our direction by speed for our desired speed
-		var desiredVelocity = desiredDirection.Multiply(agent.maxSpeed);
-
-		//The velocity change we want
-		var velocityChange = desiredVelocity.Subtract(agent.velocity());
-		//Convert to a force
-		return velocityChange.Multiply(agent.maxForce / agent.maxSpeed);
+	wander: function(agent) {
+		this._desiredVec.copy(agent.velocity);
+		this._desiredVec.normalize();
+		this._desiredVec.multiplyScalar(agent.targetDistance);
+		
+		this._scratchVec.reset(0, -1);
+		this._scratchVec.multiplyScalar(agent.targetRadius);
+		this._scratchVec.setAngle(agent._wanderAngle);
+		
+		agent._wanderAngle += (Math.random() * agent.angleJitter) - (agent.angleJitter * 0.5);
+		
+		this._desiredVec.add(this._scratchVec);
+		agent.steeringForce.add(this._desiredVec);
 	},
 	
 	
@@ -139,20 +191,77 @@ var Steering = {
 									COMPOSITE BEHAVIORS
 	-------------------------------------------------------------------------------*/
 	
-	flock: function(agent) {
-		//Work out our behaviours
-		var ff = this.seek(agent, destinations[agent.group]);
-		var sep = this.separate(agent);
-		var alg = this.align(agent);
-		var coh = this.cohere(agent);
-
-		agent.forceToApply = ff.Add(sep.Multiply(1.2)).Add(alg.Multiply(0.3)).Add(coh.Multiply(0.05));
-
-		var lengthSquared = agent.forceToApply.LengthSquared();
-		if (lengthSquared > agent.maxForceSquared) {
-			agent.forceToApply.Multiply(agent.maxForce / Math.sqrt(lengthSquared));
+	flock: function(agent, flock) {
+		this.separate(agent, flock);
+		this.align(agent, flock);
+		this.cohere(agent, flock);
+		this._seperationForce.multiplyScalar(0.2);
+		this._alignForce.multiplyScalar(1.3);
+		this._cohereForce.multiplyScalar(0.6);
+		agent.steeringForce.x += this._seperationForce.x + this._alignForce.x + this._cohereForce.x;
+		agent.steeringForce.y += this._seperationForce.y + this._alignForce.y + this._cohereForce.y;
+	},
+	
+	followPath: function(agent, path, repeat) {
+		var target = path[agent._currentPathNode];
+		
+		if (agent.position.distanceTo(target) <= agent.pathArriveRadius) {
+			agent._currentPathNode += agent._pathDir;
+			
+			if (agent._currentPathNode >= path.length || agent._currentPathNode < 0) {
+				if (repeat) {
+					agent._pathDir *= -1;
+					agent._currentPathNode += agent._pathDir;
+				} else {
+					target = path[path.length-1];
+				}
+			}
 		}
-	}
+		
+		this.seek(agent, target);
+	},
+	
+	pursue: function(agent, targetAgent) {
+		// calculate future position of target
+		this._scratchVec.copy(targetAgent.position).add(targetAgent.velocity);
+		this._scratchVec.multiplyScalar(agent.distanceTo(targetAgent) / agent.maxForce);
+		// and seek that instead
+		this.seek(agent, this._scratchVec);
+	},
+	
+	evade: function(agent, pursuingAgent) {
+		this._scratchVec.copy(pursuingAgent.position).add(pursuingAgent.velocity);
+		this._scratchVec.multiplyScalar(agent.distanceTo(pursuingAgent) / agent.maxForce);
+		
+		this.flee(agent, this._scratchVec);
+	},
+	
+	/*followLeader: function(agent, leader, flock) {
+		var tv 		:Vector3D 	= leader.velocity.clone();
+		var force 	:Vector3D	= new Vector3D();
+		
+		tv.normalize();
+		tv.scaleBy(LEADER_BEHIND_DIST);
+		
+		ahead = leader.position.clone().add(tv);
+		
+		tv.scaleBy(-1);
+		behind = leader.position.clone().add(tv);
+			
+		if (isOnLeaderSight(leader, ahead)) {
+			alpha = 0.4;
+			force = force.add(evade(leader));
+			force.scaleBy(1.8); // make evade force stronger...
+		} else {
+			alpha = 1;
+		}
+		
+		force = force.add(arrive(behind, 50));
+		force = force.add(separation(agent, flock));
+		
+		agent.steeringForce.add(this._desiredVec);
+	}*/
+
 };
 
 return Steering;

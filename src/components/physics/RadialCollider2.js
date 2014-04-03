@@ -14,16 +14,17 @@ var RadialColider2 = function(entity, settings) {
 	
 	// attributes
 	this.radius = 25;
-	this.mass = 100; // 0 is immobile
+	this.mass = 5; // 0 is immobile
 	this.invmass = 0; // never adjust this directly! use setMass() instead
 	this.restitution = 0.8; // bounciness, 0 to 1
-	this.maxSpeed = 200;
 	this.solid = true;
 	this.hasAccel = false;
 	this.hasFriction = false;
 	this.autoAdd = true;
 	this.collisionId = this.uniqueId;
 	this.boundaryBehavior = PhysicsConstants.BOUNDARY_BOUNCE;
+	this.maxSpeed = entity.maxSpeed || 100;
+	// this.brakeForce = 0.9;
 	
 	// attribute override
 	Tools.merge(this, settings);
@@ -80,13 +81,17 @@ RadialColider2.prototype = {
 	},
 	
 	update: function() {
-		this.velocity.y += World.gravity * World.elapsed;
+		this.velocity.y += World.gravity;
+		
 		
 		if (this.hasAccel) {
 			this.velocity.x += this.accel.x;
 			this.velocity.y += this.accel.y;
-			this.velocity.truncate(this.maxSpeed);
+			
+			// this.accel.x *= this.brakeForce;
+			// this.accel.y *= this.brakeForce;
 		}
+		this.velocity.truncate(this.maxSpeed);
 		
 		if (this.hasFriction) {
 			this.velocity.x *= World.friction;
@@ -127,18 +132,18 @@ RadialColider2.prototype = {
 				break;
 				
 			case PhysicsConstants.BOUNDARY_WRAP:
-				if (this.position.x < this.radius) {
-					this.position.x += World.width + this.radius;
+				if (this.position.x < 0) {
+					this.position.x += World.width;
 					
-				} else if (this.position.x + this.radius > World.width) {
-					this.position.x -= World.width - this.radius;
+				} else if (this.position.x > World.width) {
+					this.position.x -= World.width;
 				}
 				
-				if (this.position.y < this.radius) {
-					this.position.y += World.height + this.radius;
+				if (this.position.y < 0) {
+					this.position.y += World.height;
 					
-				} else if (this.position.y + this.radius > World.height) {
-					this.position.y -= World.height - this.radius;
+				} else if (this.position.y > World.height) {
+					this.position.y -= World.height;
 				}
 				break;
 		}

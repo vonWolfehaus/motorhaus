@@ -25,8 +25,9 @@ define(
 		'components/Health',
 		'components/input/TwinStickMovement',
 		'components/Timer',
-		'components/ai/Wander',
-		'components/GridTargeter'
+		'components/GridTargeter',
+		'components/ai/Boid',
+		'components/ai/StackFSM'
 	],
 	function() {
 		return require('core/Kai').registerComponents(arguments);

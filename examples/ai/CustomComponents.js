@@ -1,7 +1,7 @@
 
 define(
 	[
-		// 'ai/components/VonSprite'
+		'../../extras/components/graphics/VonSprite'
 	],
 	function() {
 		return require('core/Kai').registerComponents(arguments);

@@ -24,7 +24,7 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 		
 		components: [], // we manipulate lists of ALL components here (even postUpdate ones)...
 		componentsSorted: [], // ...but Engine iterates through this array which is sorted by update priority
-		postComponents: [], // this is also sorted, but we merely reference lists from this.components
+		// postComponents: [], // this is also sorted, but we merely reference lists from this.components
 		componentDefinitions: [],
 		numComponents: 0,
 		
@@ -112,9 +112,9 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 				// causing a ruckus. once lists are created, we only add/remove instances to this.components, but
 				// they will also show up in this other sorted array, so everything works out
 				this.componentsSorted[k] = list;
-				if (Factory.post) {
+				/*if (Factory.post) {
 					this.postComponents.push(list);
-				}
+				}*/
 				
 				if (this.debugMessages) {
 					console.info('[Kai] Registered '+Factory.className);
@@ -126,7 +126,7 @@ define(['require', 'math/Vec2', 'core/LinkedList'],
 				return a.priority - b.priority;
 			}
 			this.componentsSorted.sort(compare);
-			this.postComponents.sort(compare);
+			// this.postComponents.sort(compare);
 			
 			return exportedComponents;
 		},
