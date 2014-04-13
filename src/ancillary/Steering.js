@@ -80,6 +80,8 @@ var Steering = {
 				this._scratchVec.copy(a.velocity);
 				this._scratchVec.normalize();
 				this._alignForce.add(this._scratchVec);
+				// also check if they're where we want to be and call it good
+				if (a._arrived) agent._arrived = true;
 				neighboursCount++;
 			}
 			node = node.next;
@@ -111,6 +113,7 @@ var Steering = {
 				if (distance < agent.maxCohesion) {
 					// sum up the position of our neighbors
 					this._sumForce.add(a.position);
+					if (a._arrived) agent._arrived = true;
 					neighboursCount++;
 				}
 			}
@@ -204,20 +207,24 @@ var Steering = {
 	followPath: function(agent, path, repeat) {
 		var target = path[agent._currentPathNode];
 		
-		if (agent.position.distanceTo(target) <= agent.pathArriveRadius) {
+		if (agent._arrived || agent.position.distanceTo(target) <= agent.pathArriveRadius) {
 			agent._currentPathNode += agent._pathDir;
+			agent._arrived = false;
 			
 			if (agent._currentPathNode >= path.length || agent._currentPathNode < 0) {
 				if (repeat) {
 					agent._pathDir *= -1;
 					agent._currentPathNode += agent._pathDir;
+					
 				} else {
-					target = path[path.length-1];
+					agent._currentPathNode = path.length - 1;
+					target = path[agent._currentPathNode];
+					agent._arrived = true;
 				}
 			}
 		}
 		
-		this.seek(agent, target);
+		this.seek(agent, target, agent.slowingRadius);
 	},
 	
 	pursue: function(agent, targetAgent) {

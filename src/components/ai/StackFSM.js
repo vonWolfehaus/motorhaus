@@ -7,17 +7,12 @@ var Tools = require('utils/Tools');
 /*
 	Stack-based Finite State Machine.
 */
-var StackFSM = function(entity, settings) {
+var StackFSM = function(entity) {
 	// augment with Base
 	require('core/Base').call(this);
 	
 	// public properties
-	
-	
-	// attribute override
-	Tools.merge(this, settings);
-	
-	// other properties
+	this.state = null;
 	this.stack = [];
 	this.entity = entity;
 	
@@ -47,7 +42,12 @@ StackFSM.prototype = {
 		this.active = false;
 	},
 	
-	// don't forget to bind the passed function
+	reset: function() {
+		this.stack.length = 0;
+		this._prevFunction = null;
+		this._activeFunction = null;
+	},
+	
 	pushState: function(state, ctx) {
 		if (state !== this._activeFunction) {
 			this.stack.push(state);
@@ -56,7 +56,12 @@ StackFSM.prototype = {
 	},
 	
 	popState: function() {
-		return this.stack.pop();
+		this.stack.pop();
+		this._activeFunction = this.stack.length ? this.stack[this.stack.length - 1] : null;
+		if (!this._activeFunction) {
+			this.stateChanged.dispatch(this.state, 'null');
+			this._prevFunction = null;
+		}
 	},
 	
 	update: function() {
@@ -64,7 +69,8 @@ StackFSM.prototype = {
 		if (this._activeFunction) {
 			// monitor changes so entity can react to unique situations
 			if (this._activeFunction !== this._prevFunction) {
-				this.stateChanged.dispatch(this._prevFunction ? this._prevFunction.name : 'null', this._activeFunction.name);
+				this.state = this._activeFunction.name;
+				this.stateChanged.dispatch(this._prevFunction ? this._prevFunction.name : 'null', this.state);
 				this._prevFunction = this._activeFunction;
 			}
 			
@@ -73,10 +79,12 @@ StackFSM.prototype = {
 	},
 	
 	dispose: function() {
+		this.entity = null;
 		this._activeFunction = null;
 		this._prevFunction = null;
 		this.stack = null;
 		this.stateChanged.dispose();
+		this.stateChanged = null;
 	}
 };
 

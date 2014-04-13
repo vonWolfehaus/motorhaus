@@ -18,7 +18,7 @@ var Boid = function(entity, settings) {
 	// these are values that achieve optimal behavioral effects--use as a starting point
 	this.maxForce = 10;
 	// arrive
-	this.slowingRadius = 80;
+	this.slowingRadius = 50;
 	this.pathArriveRadius = 50;
 	// follow leader
 	// this.leaderBehindDist = 100;
@@ -46,14 +46,17 @@ var Boid = function(entity, settings) {
 	
 	// private properties
 	this._wanderAngle = 0;
-	this._prevAngle = 0;
+	// this._prevAngle = 0;
 	this._currentPathNode = 0;
 	this._pathDir = 1;
+	this._arrived = false;
 	
 	// prerequisite components
 	this.position = Kai.expect(entity, 'position', Vec2);
 	this.rotation = Kai.expect(entity, 'rotation', Vec2);
 	this.velocity = Kai.expect(entity, 'velocity', Vec2);
+	
+	this.groupControl = new Signal();
 };
 
 // required statics for component system
@@ -62,12 +65,14 @@ Boid.className = 'BOID'; // name of component on the component definition object
 Boid.priority = 95; // just before the physics components (at 100) but otherwise dead last
 Boid.post = false; // whether or not this component will have a postUpdate() called on it
 
-
 Boid.prototype = {
 	constructor: Boid,
 	
 	activate: function() {
 		this.active = true;
+		this._currentPathNode = 0;
+		this._pathDir = 1;
+		this._arrived = false;
 	},
 	
 	disable: function() {

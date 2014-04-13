@@ -29,21 +29,21 @@
 <canvas id="debug"></canvas>
 
 
-<script type="text/javascript" src="../../lib/von2d.min.js"></script>
+<script type="text/javascript" src="../_shared/vendor/von2d.min.js"></script>
 <script type="text/javascript" src="../../lib/require.js"></script>
 <script type="text/javascript">
 require.config({
 	baseUrl: '../../src', // engine
 	paths: {
-		'ai': '../examples/test_steering/src'
+		'ai': '../examples/ai'
 	}
 });
-require(['core/Engine', 'ai/SteeringTest'],
-function(Engine, SteeringTest) {
+require(['core/Engine', 'ai/states/FollowPathTest'],
+function(Engine, Test) {
 	
-	var engine = new von.Engine();
+	var engine = new Engine();
 	
-	engine.state.add('Test', SteeringTest);
+	engine.state.add('Test', Test);
 	
 	engine.start('Test');
 		

@@ -8,12 +8,12 @@ var VonComponents = require('components/VonComponents');
 var CustomType = require('ai/CustomComponents');
 var MathTools = require('math/MathTools');
 var PhysicsConstants = require('physics/PhysicsConstants');
-var DebugDraw = require('utils/DebugDraw');
 
 var Steering = require('ancillary/Steering');
+var BoidGroup = require('entities/BoidGroup');
 
 // constructor
-var PathBoidy = function(posx, posy, settings) {
+var DroneBoidy = function(posx, posy, settings) {
 	require('core/Base').call(this);
 	
 	// private
@@ -22,15 +22,9 @@ var PathBoidy = function(posx, posy, settings) {
 	var diameter = radius * 2;
 	
 	// attributes
-	this.maxSpeed = 120;
-	this.path = null;
+	this.maxSpeed = 150;
 	
 	Tools.merge(this, settings);
-	
-	this._group = new LinkedList();
-	
-	// random starting offset so the refresh call of all boids is distributed across multiple frames, causing less performance strain
-	this._refreshGroupInterval = MathTools.randomInt(0, 6);
 	
 	// base components
 	this.position = new Vec2(posx, posy);
@@ -58,19 +52,34 @@ var PathBoidy = function(posx, posy, settings) {
 		container: Kai.layer
 	});
 	
-	this.stackFSM.stateChanged.add(this._stateChanged, this);
-	
 	// push a default.initial state
-	this.stackFSM.pushState(this.seekMouse, this);
+	this.stackFSM.pushState(this.idle, this);
+	
+	// idle the boid
+	this.boid.steeringForce.reset();
+	this.boid.groupControl.add(this.groupAction, this);
 };
 
 
-PathBoidy.prototype = {
-	constructor: PathBoidy,
+DroneBoidy.prototype = {
+	constructor: DroneBoidy,
 	
 	/*-------------------------------------------------------------------------------
 									PUBLIC
 	-------------------------------------------------------------------------------*/
+	
+	groupAction: function(groupState) {
+		switch (groupState) {
+			case BoidGroup.ATTACHED:
+				this.stackFSM.pushState(this.grouped, this);
+				break;
+			case BoidGroup.DETACHED:
+				if (this.stackFSM.state === 'grouped') {
+					this.stackFSM.popState();
+				}
+				break;
+		}
+	},
 	
 	activate: function() {
 		this.active = true;
@@ -78,6 +87,7 @@ PathBoidy.prototype = {
 		this.body.activate();
 		this.boid.activate();
 		this.stackFSM.activate();
+		this.velocity.reset();
 	},
 	
 	disable: function() {
@@ -89,8 +99,6 @@ PathBoidy.prototype = {
 	},
 	
 	dispose: function() {
-		// remove signal callbacks
-		
 		// dispose components
 		Kai.removeComponent(this, VonComponents.STACK_FSM);
 		Kai.removeComponent(this, VonComponents.BOID);
@@ -100,9 +108,8 @@ PathBoidy.prototype = {
 		// null references
 		this.position = null;
 		this.velocity = null;
+		this.accel = null;
 	},
-	
-	
 	
 	/*-------------------------------------------------------------------------------
 									BEHAVIORS: called every tick by StackFSM
@@ -111,53 +118,18 @@ PathBoidy.prototype = {
 	// IMPORTANT NOTE: if we don't name the function, then the StackFSM will return empty strings for the state change,
 	// since otherwise they're anonymous functions and StackFSM uses Function.name (an ES6 feature) in its Signal.
 	
-	seekMouse: function seekMouse() {
-		this.flock();
-		Steering.seek(this.boid, Kai.mouse.position, this.boid.slowingRadius);
-		
-		if (this.path.length) {
-			this.stackFSM.pushState(this.followPath, this);
-		}
+	idle: function idle() {
+		this.velocity.multiplyScalar(0.9);
+		this.boid.steeringForce.x = 0;
+		this.boid.steeringForce.y = 0;
 	},
 	
-	followPath: function followPath() {
-		this.flock();
-		// have this boid move along this path and repeat (true) when it gets to the end so it "paces"
-		Steering.followPath(this.boid, this.path, true);
-	},
-	
-	flock: function flock() {
-		if (--this._refreshGroupInterval === 0) {
-			// throttle this call because it's *really* expensive, and no one will notice anyway
-			World.broadphase.getNeighbors(this.body, this.boid.flockRadius, this._group);
-			this._refreshGroupInterval = 3;
-		}
+	grouped: function grouped() {
 		
-		Steering.flock(this.boid, this._group);
-		
-		// DEBUG DRAWING
-		var node = this._group.first;
-		var t = 100 * this.boid.groupID;
-		var color = 'rgb('+t+','+0+','+t+')';
-		while (node) {
-			var a = node.obj.entity;
-			if (a !== this) {
-				DebugDraw.vectorLine(Kai.debugCtx, this.position, a.position, color);
-			}
-			node = node.next;
-		}
-	},
-	
-	/*-------------------------------------------------------------------------------
-									PRIVATE: EVENTS
-	-------------------------------------------------------------------------------*/
-	
-	_stateChanged: function(oldState, newState) {
-		// console.log('[PathBoidy._stateChanged] from '+oldState+' to '+newState);
 	}
 	
 };
 
-return PathBoidy;
+return DroneBoidy;
 
 });

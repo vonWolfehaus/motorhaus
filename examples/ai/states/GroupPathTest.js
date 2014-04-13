@@ -9,10 +9,13 @@ var DOMTools = require('utils/DOMTools');
 var MathTools = require('math/MathTools');
 var DebugDraw = require('utils/DebugDraw');
 
-var Boidy = require('ai/entities/PathBoidy');
+var Boidy = require('ai/entities/DroneBoidy');
+var BoidGroup = require('entities/BoidGroup');
 
 
 var FollowPathTest = {
+	
+	_group: new BoidGroup({}),
 	
 	preload: function () {
 		console.log('[FollowPathTest.preload]');
@@ -70,13 +73,15 @@ var FollowPathTest = {
 		
 		Kai.renderHook = this.draw.bind(this);
 		
-		this.path = [/*new Vec2(230, 160), new Vec2(238, 408), new Vec2(438, 480), new Vec2(476, 241), new Vec2(690, 320)*/];
+		this.path = this._group.path;
 
 		// add our dynamic objects
-		var aiEntity = new Boidy(MathTools.random(50, 300), MathTools.random(50, 300));
-		aiEntity.boid.groupID = 1;
-		aiEntity.activate();
-		aiEntity.path = this.path;
+		var aiEntity;
+		for (i = 0; i < 6; i++) {
+			aiEntity = new Boidy(MathTools.random(50, 300), MathTools.random(50, 300));
+			aiEntity.activate();
+			this._group.addEntity(aiEntity);
+		}
 		
 		Kai.mouse.onDown.add(this.clicked, this);
 		
@@ -101,6 +106,9 @@ var FollowPathTest = {
 	
 	draw: function () {
 		Kai.stage.draw();
+		if (this._group.active) {
+			DebugDraw.point(Kai.debugCtx, this._group.position, null, 'rgb(0, 0, 0)');
+		}
 	},
 	
 	dispose: function() {
@@ -108,16 +116,13 @@ var FollowPathTest = {
 	},
 	
 	clicked: function(pos) {
-		var v;
-		if (this.path.length < 5) {
-			v = new Vec2(pos.x, pos.y);
-			// console.log(v);
-		} else {
-			v = this.path.shift();
-			v.copy(pos);
+		if (!this._group.active) {
+			// make sure the group gets updated
+			this._group.activate();
 		}
-		this.path.push(v);
+		this._group.addWaypoint(pos.x, pos.y);
 	}
+	
 };
 
 return FollowPathTest;

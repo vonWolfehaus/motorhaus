@@ -9,13 +9,13 @@ var DebugDraw = {
 		ctx.strokeStyle = color;
 		ctx.stroke();
 	},
-	point: function(ctx, p, color) {
+	point: function(ctx, p, radius, color) {
 		color = color || 'rgb(200, 10, 30)';
+		radius = radius || 3;
 		ctx.beginPath();
-		ctx.arc(p.x, p.y, 2, 0, tau);
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = color;
-		ctx.stroke();
+		ctx.arc(p.x, p.y, radius, 0, tau);
+		ctx.fillStyle = color;
+		ctx.fill();
 	},
 	vector: function(ctx, v, offsetVec, color) {
 		color = color || 'rgb(200, 10, 30)';
