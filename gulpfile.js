@@ -5,10 +5,13 @@ var rename = require('gulp-rename');
 var fs = require('fs');
 
 gulp.task('dev', function() {
+	var these = ['components/VonComponents', 'physics/CollisionGrid',
+				'utils/DebugDraw', 'utils/DOMTools', 'utils/DualPool', 'utils/Tools'];
+	
 	rjs({
 		baseUrl: 'src',
 		name: 'core/Engine',
-		include: ['components/VonComponents'],
+		include: these,
 		onBuildWrite: function(name, path, contents) {
 			return require('amdclean').clean({
 				code: contents,

@@ -41,12 +41,12 @@ require.config({
 		'ai': '../examples/ai'
 	}
 });
-require(['core/Engine', 'ai/states/BasicAITest'],
-function(Engine, BasicAITest) {
+require(['core/Engine', 'ai/states/DemoRTS'],
+function(Engine, DemoRTS) {
 	
 	var engine = new Engine();
 	
-	engine.state.add('Test', BasicAITest);
+	engine.state.add('Test', DemoRTS);
 	
 	engine.start('Test');
 		

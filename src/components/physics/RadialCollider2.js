@@ -83,7 +83,6 @@ RadialColider2.prototype = {
 	update: function() {
 		this.velocity.y += World.gravity;
 		
-		
 		if (this.hasAccel) {
 			this.velocity.x += this.accel.x;
 			this.velocity.y += this.accel.y;

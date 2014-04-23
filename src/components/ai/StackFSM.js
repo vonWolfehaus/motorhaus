@@ -40,6 +40,7 @@ StackFSM.prototype = {
 	
 	disable: function() {
 		this.active = false;
+		this.reset();
 	},
 	
 	reset: function() {
@@ -52,6 +53,10 @@ StackFSM.prototype = {
 		if (state !== this._activeFunction) {
 			this.stack.push(state);
 			this._activeContext = ctx;
+			
+			if (!this.active) {
+				this.activate();
+			}
 		}
 	},
 	
@@ -61,6 +66,7 @@ StackFSM.prototype = {
 		if (!this._activeFunction) {
 			this.stateChanged.dispatch(this.state, 'null');
 			this._prevFunction = null;
+			this.disable();
 		}
 	},
 	

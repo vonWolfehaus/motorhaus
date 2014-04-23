@@ -19,8 +19,8 @@ var BoidGroup = function(settings) {
 	this.maxForce = 9999999; // this gets overwritten by the slowest member of the group
 	// arrive
 	this.slowingRadius = 70;
-	this.pathArriveRadius = 100;
-	this.groupID = 0;
+	this.pathArriveRadius = 60;
+	this.groupID = this.uniqueId; // never modify the uniqueId, so copy it to something we can mess with
 	this.repeat = false;
 	// wander?
 	// this.angleJitter = 0.9;
@@ -46,6 +46,8 @@ var BoidGroup = function(settings) {
 	this.path = [];
 	
 	Kai.addComponent(this, VonComponents.STACK_FSM);
+	
+	this.onComplete = new Signal();
 	
 	this.stackFSM.stateChanged.add(this._stateChanged, this);
 };
@@ -77,6 +79,18 @@ BoidGroup.prototype = {
 		this.addBoid(entity.boid);
 	},
 	
+	addEntities: function(list) {
+		var entity, node = list.first;
+		while (node) {
+			entity = node.obj;
+			if (!entity.boid) {
+				continue;
+			}
+			this.addBoid(entity.boid);
+			node = node.next;
+		}
+	},
+	
 	removeBoid: function(boid) {
 		var a, node;
 		this.members.remove(boid);
@@ -84,6 +98,7 @@ BoidGroup.prototype = {
 		
 		if (this.members.length === 0) {
 			this.disable();
+			this.onComplete.dispatch(this);
 			return;
 		}
 		
@@ -104,6 +119,7 @@ BoidGroup.prototype = {
 	removeAll: function() {
 		this.members.clear();
 		this.disable(); // no group to move, so we're done
+		this.onComplete.dispatch(this);
 	},
 	
 	addWaypoint: function(x, y) {
@@ -112,8 +128,8 @@ BoidGroup.prototype = {
 		v.y = y;
 		this.path.push(v);
 		
-		this.stackFSM.pushState(this.followPath, this);
 		this._arrived = false;
+		this.stackFSM.pushState(this.followPath, this);
 	},
 	
 	// we usually get a full path from some pathfinding algorithm, so this will non-destructively
@@ -143,9 +159,25 @@ BoidGroup.prototype = {
 		}
 	},*/
 	
-	activate: function() {
+	activate: function(members) {
+		var a, node;
+		if (this.active) return;
+		
 		this.active = true;
 		this.stackFSM.activate();
+		
+		if (members) {
+			this.members.clear();
+			this.addEntities(members);
+		}
+		
+		node = this.members.first;
+		while (node) {
+			a = node.obj;
+			this.position.add(a.position);
+			node = node.next;
+		}
+		this.position.divideScalar(this.members.length);
 	},
 	
 	disable: function() {
@@ -255,6 +287,8 @@ BoidGroup.prototype = {
 					a.groupControl.dispatch(BoidGroup.DETACHED);
 					node = node.next;
 				}
+				// any anyone else 
+				this.onComplete.dispatch(this);
 				break;
 		}
 	}

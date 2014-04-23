@@ -251,6 +251,11 @@ von['LinkedList'] = function () {
             this.objToNodeMap[obj.uniqueId] = node;
             return node;
         };
+        this.swapObjects = function (node, newObj) {
+            this.objToNodeMap[node.obj.uniqueId] = null;
+            this.objToNodeMap[newObj.uniqueId] = node;
+            node.obj = newObj;
+        };
         this.add = function (obj) {
             var node = this.objToNodeMap[obj.uniqueId];
             if (!node) {
@@ -387,6 +392,13 @@ von['LinkedList'] = function () {
             this.length--;
             return node.obj;
         };
+        this.concat = function (list) {
+            var node = list.first;
+            while (node) {
+                this.add(node.obj);
+                node = node.next;
+            }
+        };
         this.clear = function () {
             var next = this.first;
             while (next) {
@@ -440,7 +452,6 @@ von['Kai'] = function (require, Vec2, LinkedList) {
         debugMessages: true,
         components: [],
         componentsSorted: [],
-        postComponents: [],
         componentDefinitions: [],
         numComponents: 0,
         width: window.innerWidth,
@@ -490,9 +501,6 @@ von['Kai'] = function (require, Vec2, LinkedList) {
                 this.components[k] = list;
                 this.componentDefinitions[k] = exportedComponents[Factory.className];
                 this.componentsSorted[k] = list;
-                if (Factory.post) {
-                    this.postComponents.push(list);
-                }
                 if (this.debugMessages) {
                     console.info('[Kai] Registered ' + Factory.className);
                 }
@@ -501,7 +509,6 @@ von['Kai'] = function (require, Vec2, LinkedList) {
                 return a.priority - b.priority;
             }
             this.componentsSorted.sort(compare);
-            this.postComponents.sort(compare);
             return exportedComponents;
         },
         addComponent: function (entity, compDef, options, arr) {
@@ -732,7 +739,7 @@ von['StateManager'] = function (require, Kai, CommTower) {
     var Tower = von['CommTower'];
     var StateManager = function () {
         this.states = {};
-        this.currentIdx = null;
+        this.currentStateName = null;
         this.currentState = null;
         this.ready = false;
         this.queue = [];
@@ -743,18 +750,12 @@ von['StateManager'] = function (require, Kai, CommTower) {
             Kai.load.onLoadComplete.add(this.loadComplete, this);
             this.next();
         },
-        add: function (key, state) {
-            var newState;
-            if (typeof state === 'object') {
-                newState = state;
-            } else if (typeof state === 'function') {
-                newState = new state();
-            }
-            if (this.checkState(key, newState) === false) {
+        add: function (key, StateObj) {
+            if (this.checkState(key, StateObj) === false) {
                 return;
             }
-            this.states[key] = newState;
-            return newState;
+            this.states[key] = StateObj;
+            return StateObj;
         },
         remove: function (key) {
             delete this.states[key];
@@ -773,18 +774,19 @@ von['StateManager'] = function (require, Kai, CommTower) {
         },
         next: function (clearCache) {
             if (this.queue.length === 0 || Kai.ready === false) {
+                console.log('[StateManager.next] Queue length: ' + this.queue.length + '; Engine ready: ' + Kai.ready);
                 return;
             }
             Kai.inputBlocked = true;
             if (clearCache) {
                 Kai.cache.dispose();
             }
-            if (!!this.currentIdx) {
-                this.currentState = this.states[this.currentIdx];
+            if (!!this.currentStateName) {
+                this.currentState = this.states[this.currentStateName];
                 this.currentState.dispose();
             }
-            this.currentIdx = this.queue.shift();
-            this.currentState = this.states[this.currentIdx];
+            this.currentStateName = this.queue.shift();
+            this.currentState = this.states[this.currentStateName];
             Kai.load.reset();
             this.currentState.preload();
             Kai.load.start();
@@ -795,12 +797,16 @@ von['StateManager'] = function (require, Kai, CommTower) {
                 console.error('[StateManager.checkState] Duplicate key: ' + key);
                 return false;
             }
+            if (typeof state === 'function') {
+                console.error('[StateManager.switchState] States must be object literals, not functions');
+                return false;
+            }
             if (!!state) {
-                if (state['preload'] && state['create'] && state['update'] && state['draw'] && state['dispose']) {
+                if (state.preload && state.create && state.update && state.dispose) {
                     valid = true;
                 }
                 if (!valid) {
-                    console.error('[StateManager.checkState] Invalid State "' + key + '" given. Must contain all required functions.');
+                    console.error('[StateManager.checkState] Invalid State "' + key + '" given. Must contain all required functions: preload, create, update, dispose');
                     return false;
                 }
                 return true;
@@ -1783,6 +1789,9 @@ von['Engine'] = function (require, Kai, CommTower, StateManager, RequestAnimatio
                 return;
             }
             if (this.state.ready) {
+                if (Kai.debugCtx) {
+                    Kai.debugCtx.clearRect(0, 0, Kai.width, Kai.height);
+                }
                 for (i = 0; i < len; i++) {
                     if (!list[i])
                         continue;
@@ -1794,20 +1803,6 @@ von['Engine'] = function (require, Kai, CommTower, StateManager, RequestAnimatio
                         obj = node.obj;
                         if (obj.active) {
                             obj.update();
-                        }
-                        node = node.next;
-                    }
-                }
-                list = Kai.postComponents;
-                len = list.length;
-                for (i = 0; i < len; i++) {
-                    if (!list[i])
-                        continue;
-                    node = list[i].first;
-                    while (node) {
-                        obj = node.obj;
-                        if (obj.active) {
-                            obj.postUpdate();
                         }
                         node = node.next;
                     }
@@ -1890,6 +1885,60 @@ von['World'] = function (require, Tools) {
         }
     };
 }({}, von['Tools']);
+von['PhysicsConstants'] = function (require) {
+    return {
+        BOUNDARY_WRAP: 'wrap',
+        BOUNDARY_BOUNCE: 'bounce',
+        BOUNDARY_DISABLE: 'disable'
+    };
+}({});
+von['DebugDraw'] = function () {
+    var tau = Math.PI * 2;
+    var DebugDraw = {
+            circle: function (ctx, x, y, radius, color) {
+                color = color || 'rgb(200, 10, 30)';
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, tau);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = color;
+                ctx.stroke();
+            },
+            point: function (ctx, p, radius, color) {
+                color = color || 'rgb(200, 10, 30)';
+                radius = radius || 3;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, radius, 0, tau);
+                ctx.fillStyle = color;
+                ctx.fill();
+            },
+            vector: function (ctx, v, offsetVec, color) {
+                color = color || 'rgb(200, 10, 30)';
+                ctx.beginPath();
+                ctx.moveTo(offsetVec.x, offsetVec.y);
+                ctx.lineTo(v.x + offsetVec.x, v.y + offsetVec.y);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = color;
+                ctx.stroke();
+            },
+            vectorLine: function (ctx, fromV, toV, color) {
+                color = color || 'rgb(200, 10, 30)';
+                ctx.beginPath();
+                ctx.moveTo(fromV.x, fromV.y);
+                ctx.lineTo(toV.x, toV.y);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = color;
+                ctx.stroke();
+            },
+            rectangle: function (ctx, x, y, sizeX, sizeY, color) {
+                color = color || 'rgb(200, 10, 30)';
+                ctx.beginPath();
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = color;
+                ctx.strokeRect(x - sizeX * 0.5, y - sizeY * 0.5, sizeX, sizeY);
+            }
+        };
+    return DebugDraw;
+}();
 /*
 	All game objects must extend this, since many core components assume these properties exist on everything.
 	
@@ -1902,25 +1951,38 @@ von['Base'] = function () {
     };
     return Base;
 }();
-von['AABB2'] = function (require, Tools, World, Base) {
+von['AABB2'] = function (require, Kai, Tools, World, PhysicsConstants, DebugDraw, Base) {
+    var Kai = von['Kai'];
     var Tools = von['Tools'];
     var World = von['World'];
+    var PhysicsConstants = von['PhysicsConstants'];
+    var DebugDraw = von['DebugDraw'];
     var AABB2 = function (entity, settings) {
         von['Base'].call(this);
         this.width = 50;
         this.height = 50;
         this.min = new Vec2();
         this.max = new Vec2();
-        this.mass = 100;
+        this.mass = 5;
         this.invmass = 0;
         this.restitution = 0.6;
         this.solid = true;
+        this.hasAccel = false;
+        this.hasFriction = false;
+        this.autoAdd = true;
+        this.collisionId = this.uniqueId;
+        this.boundaryBehavior = PhysicsConstants.BOUNDARY_BOUNCE;
+        this.maxSpeed = entity.maxSpeed || 100;
         Tools.merge(this, settings);
+        this.onCollision = new Signal();
         this.entity = entity;
         this._halfWidth = this.width / 2;
         this._halfHeight = this.height / 2;
-        this.position = entity.position;
-        this.velocity = entity.velocity;
+        this.position = Kai.expect(entity, 'position', Vec2);
+        this.velocity = Kai.expect(entity, 'velocity', Vec2);
+        if (this.hasAccel) {
+            this.accel = Kai.expect(entity, 'accel', Vec2);
+        }
         this.min.x = this.position.x - this._halfWidth;
         this.min.y = this.position.y - this._halfHeight;
         this.max.x = this.position.x + this._halfWidth;
@@ -1941,39 +2003,89 @@ von['AABB2'] = function (require, Tools, World, Base) {
             }
         },
         activate: function () {
-            this.setMass(this.mass);
+            this.solid = true;
+            this.active = true;
+            if (this.autoAdd) {
+                World.broadphase.add(this);
+            }
+        },
+        disable: function () {
+            this.solid = false;
+            this.active = false;
+            if (this.autoAdd) {
+                World.broadphase.remove(this);
+            }
         },
         update: function () {
-            this.velocity.y += World.gravity * World.elapsed;
+            this.velocity.y += World.gravity;
+            if (this.hasAccel) {
+                this.velocity.x += this.accel.x;
+                this.velocity.y += this.accel.y;
+            }
+            this.velocity.truncate(this.maxSpeed);
+            if (this.hasFriction) {
+                this.velocity.x *= World.friction;
+                this.velocity.y *= World.friction;
+            }
             this.position.x += this.velocity.x * World.elapsed;
             this.position.y += this.velocity.y * World.elapsed;
-            if (this.position.x < this._halfWidth) {
-                this.position.x = this._halfWidth;
-                this.velocity.x = -this.velocity.x * this.restitution;
-            } else if (this.position.x + this._halfWidth > World.width) {
-                this.position.x = World.width - this._halfWidth;
-                this.velocity.x = -this.velocity.x * this.restitution;
-            }
-            if (this.position.y < this._halfWidth) {
-                this.position.y = this._halfWidth;
-                this.velocity.y = -this.velocity.y * this.restitution;
-            } else if (this.position.y + this._halfHeight > World.height) {
-                this.position.y = World.height - this._halfHeight;
-                this.velocity.y = -this.velocity.y * this.restitution;
+            switch (this.boundaryBehavior) {
+            case PhysicsConstants.BOUNDARY_DISABLE:
+                if (this.position.x < this.radius || this.position.x + this.radius > World.width || this.position.y < this.radius || this.position.y + this.radius > World.height) {
+                    this.onCollision.dispatch(null);
+                }
+                break;
+            case PhysicsConstants.BOUNDARY_BOUNCE:
+                if (this.position.x < this._halfWidth) {
+                    this.position.x = this._halfWidth;
+                    this.velocity.x = -this.velocity.x * this.restitution;
+                } else if (this.position.x + this._halfWidth > World.width) {
+                    this.position.x = World.width - this._halfWidth;
+                    this.velocity.x = -this.velocity.x * this.restitution;
+                }
+                if (this.position.y < this._halfWidth) {
+                    this.position.y = this._halfWidth;
+                    this.velocity.y = -this.velocity.y * this.restitution;
+                } else if (this.position.y + this._halfHeight > World.height) {
+                    this.position.y = World.height - this._halfHeight;
+                    this.velocity.y = -this.velocity.y * this.restitution;
+                }
+                break;
+            case PhysicsConstants.BOUNDARY_WRAP:
+                if (this.position.x < 0) {
+                    this.position.x += World.width;
+                } else if (this.position.x > World.width) {
+                    this.position.x -= World.width;
+                }
+                if (this.position.y < 0) {
+                    this.position.y += World.height;
+                } else if (this.position.y > World.height) {
+                    this.position.y -= World.height;
+                }
+                break;
             }
             this.min.x = this.position.x - this._halfWidth;
             this.min.y = this.position.y - this._halfHeight;
             this.max.x = this.position.x + this._halfWidth;
             this.max.y = this.position.y + this._halfHeight;
         },
+        debugDraw: function (ctx) {
+            if (World.camera) {
+                DebugDraw.rectangle(ctx, this.position.x - World.camera.position.x, this.position.y - World.camera.position.y, this.width, this.height);
+            } else {
+                DebugDraw.rectangle(ctx, this.position.x, this.position.y, this.width, this.height);
+            }
+        },
         dispose: function () {
+            this.onCollision.dispose();
             this.entity = null;
             this.position = null;
             this.velocity = null;
+            this.onCollision = null;
         }
     };
     return AABB2;
-}({}, von['Tools'], von['World'], von['Base']);
+}({}, von['Kai'], von['Tools'], von['World'], von['PhysicsConstants'], von['DebugDraw'], von['Base']);
 von['AABB3'] = function (require, Tools, World, Base) {
     var Tools = von['Tools'];
     var World = von['World'];
@@ -2052,42 +2164,6 @@ von['AABB3'] = function (require, Tools, World, Base) {
     };
     return AABB3;
 }({}, von['Tools'], von['World'], von['Base']);
-von['PhysicsConstants'] = function (require) {
-    return {
-        BOUNDARY_WRAP: 'wrap',
-        BOUNDARY_BOUNCE: 'bounce',
-        BOUNDARY_DISABLE: 'disable'
-    };
-}({});
-von['DebugDraw'] = function () {
-    var tau = Math.PI * 2;
-    var DebugDraw = {
-            circle: function (ctx, x, y, radius, color) {
-                color = color || 'rgb(200, 10, 30)';
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, tau);
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = color;
-                ctx.stroke();
-            },
-            point: function (ctx, p, color) {
-                color = color || 'rgb(200, 10, 30)';
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 2, 0, tau);
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = color;
-                ctx.stroke();
-            },
-            rectangle: function (ctx, x, y, sizeX, sizeY, color) {
-                color = color || 'rgb(200, 10, 30)';
-                ctx.beginPath();
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = color;
-                ctx.strokeRect(x - sizeX * 0.5, y - sizeY * 0.5, sizeX, sizeY);
-            }
-        };
-    return DebugDraw;
-}();
 von['RadialCollider2'] = function (require, Kai, Tools, World, PhysicsConstants, DebugDraw, Base) {
     var Kai = von['Kai'];
     var Tools = von['Tools'];
@@ -2097,16 +2173,16 @@ von['RadialCollider2'] = function (require, Kai, Tools, World, PhysicsConstants,
     var RadialColider2 = function (entity, settings) {
         von['Base'].call(this);
         this.radius = 25;
-        this.mass = 100;
+        this.mass = 5;
         this.invmass = 0;
         this.restitution = 0.8;
-        this.maxSpeed = 200;
         this.solid = true;
         this.hasAccel = false;
         this.hasFriction = false;
         this.autoAdd = true;
         this.collisionId = this.uniqueId;
         this.boundaryBehavior = PhysicsConstants.BOUNDARY_BOUNCE;
+        this.maxSpeed = entity.maxSpeed || 100;
         Tools.merge(this, settings);
         this.onCollision = new Signal();
         this.entity = entity;
@@ -2146,12 +2222,12 @@ von['RadialCollider2'] = function (require, Kai, Tools, World, PhysicsConstants,
             }
         },
         update: function () {
-            this.velocity.y += World.gravity * World.elapsed;
+            this.velocity.y += World.gravity;
             if (this.hasAccel) {
                 this.velocity.x += this.accel.x;
                 this.velocity.y += this.accel.y;
-                this.velocity.truncate(this.maxSpeed);
             }
+            this.velocity.truncate(this.maxSpeed);
             if (this.hasFriction) {
                 this.velocity.x *= World.friction;
                 this.velocity.y *= World.friction;
@@ -2181,15 +2257,15 @@ von['RadialCollider2'] = function (require, Kai, Tools, World, PhysicsConstants,
                 }
                 break;
             case PhysicsConstants.BOUNDARY_WRAP:
-                if (this.position.x < this.radius) {
-                    this.position.x += World.width + this.radius;
-                } else if (this.position.x + this.radius > World.width) {
-                    this.position.x -= World.width - this.radius;
+                if (this.position.x < 0) {
+                    this.position.x += World.width;
+                } else if (this.position.x > World.width) {
+                    this.position.x -= World.width;
                 }
-                if (this.position.y < this.radius) {
-                    this.position.y += World.height + this.radius;
-                } else if (this.position.y + this.radius > World.height) {
-                    this.position.y -= World.height - this.radius;
+                if (this.position.y < 0) {
+                    this.position.y += World.height;
+                } else if (this.position.y > World.height) {
+                    this.position.y -= World.height;
                 }
                 break;
             }
@@ -2547,94 +2623,6 @@ von['Timer'] = function (require, Tools, Base) {
     };
     return Timer;
 }({}, von['Tools'], von['Base']);
-von['MathTools'] = {
-    PI: Math.PI,
-    TAU: Math.PI * 2,
-    clamp: function (val, min, max) {
-        return Math.max(min, Math.min(max, val));
-    },
-    sign: function (val) {
-        return number && number / Math.abs(number);
-    },
-    random: function (min, max) {
-        if (arguments.length === 1) {
-            return Math.random() * min - min * 0.5;
-        }
-        return Math.random() * (max - min) + min;
-    },
-    randomInt: function (min, max) {
-        if (arguments.length === 1) {
-            return Math.floor(Math.random() * min - min * 0.5);
-        }
-        return Math.floor(Math.random() * (max - min + 1) + min);
-    },
-    getShortRotation: function (angle) {
-        angle %= this.TAU;
-        if (angle > this.PI) {
-            angle -= this.TAU;
-        } else if (angle < -this.PI) {
-            angle += this.TAU;
-        }
-        return angle;
-    }
-};
-/**
- * 
- */
-von['Wander'] = function (require, Tools, MathTools, Base) {
-    var Tools = von['Tools'];
-    var MathTools = von['MathTools'];
-    var Wander = function (entity, settings) {
-        von['Base'].call(this);
-        this.maxSpeed = 20;
-        this.jitterAngle = 1;
-        this.targetDistance = 20;
-        this.targetRadius = 10;
-        Tools.merge(this, settings);
-        this.entity = entity;
-        this._wanderAngle = 0;
-        this._circleCenter = new Vec2();
-        this._displacement = new Vec2();
-        this.position = entity.position;
-        this.velocity = entity.velocity;
-        this.accel = entity.accel;
-        this.rotation = entity.rotation;
-    };
-    Wander.accessor = 'wander';
-    Wander.className = 'WANDER_BEHAVIOR';
-    Wander.priority = 10;
-    Wander.prototype = {
-        constructor: Wander,
-        activate: function () {
-            this.active = true;
-        },
-        disable: function () {
-            this.active = false;
-        },
-        update: function () {
-            this._circleCenter.copy(this.velocity);
-            this._circleCenter.normalize();
-            this._circleCenter.multiplyScalar(this.targetDistance);
-            this._displacement.reset(0, -1);
-            this._displacement.multiplyScalar(this.targetRadius);
-            this.setAngle(this._displacement, this._wanderAngle);
-            this._wanderAngle += Math.random() * this.jitterAngle - this.jitterAngle * 0.5;
-            this.velocity.add(this._circleCenter.add(this._displacement));
-            this.velocity.truncate(this.maxSpeed);
-            this.rotation.copy(this.velocity);
-        },
-        setAngle: function (vector, value) {
-            var len = vector.getLength();
-            vector.x = Math.cos(value) * len;
-            vector.y = Math.sin(value) * len;
-        },
-        dispose: function () {
-            this.entity = null;
-            this.position = null;
-        }
-    };
-    return Wander;
-}({}, von['Tools'], von['MathTools'], von['Base']);
 /**
  * Class description
  */
@@ -2697,6 +2685,180 @@ von['GridTargeter'] = function (require, World, Tools, Base) {
     };
     return GridTargeter;
 }({}, von['World'], von['Tools'], von['Base']);
+von['MathTools'] = {
+    PI: Math.PI,
+    TAU: Math.PI * 2,
+    clamp: function (val, min, max) {
+        return Math.max(min, Math.min(max, val));
+    },
+    sign: function (val) {
+        return number && number / Math.abs(number);
+    },
+    random: function (min, max) {
+        if (arguments.length === 1) {
+            return Math.random() * min - min * 0.5;
+        }
+        return Math.random() * (max - min) + min;
+    },
+    randomInt: function (min, max) {
+        if (arguments.length === 1) {
+            return Math.floor(Math.random() * min - min * 0.5);
+        }
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    },
+    getShortRotation: function (angle) {
+        angle %= this.TAU;
+        if (angle > this.PI) {
+            angle -= this.TAU;
+        } else if (angle < -this.PI) {
+            angle += this.TAU;
+        }
+        return angle;
+    }
+};
+/*
+	Controls the acceleration of an entity and enables steering behaviors to be used.
+*/
+von['Boid'] = function (require, Kai, Tools, World, MathTools, Base) {
+    var Kai = von['Kai'];
+    var Tools = von['Tools'];
+    var World = von['World'];
+    var MathTools = von['MathTools'];
+    var Boid = function (entity, settings) {
+        von['Base'].call(this);
+        this.maxForce = 10;
+        this.slowingRadius = 50;
+        this.pathArriveRadius = 50;
+        this.groupID = 0;
+        this.flockRadius = 160;
+        this.maxCohesion = 140;
+        this.minSeparation = 70;
+        this.angleJitter = 0.9;
+        this.targetDistance = 20;
+        this.targetRadius = 20;
+        Tools.merge(this, settings);
+        this.entity = entity;
+        this.steeringForce = new Vec2(MathTools.random(this.maxForce), MathTools.random(this.maxForce));
+        this.maxSpeed = this.entity.maxSpeed || this.maxForce;
+        if (entity.body) {
+            this.maxSpeed = entity.body.maxSpeed;
+        }
+        this._wanderAngle = 0;
+        this._currentPathNode = 0;
+        this._pathDir = 1;
+        this._arrived = false;
+        this.position = Kai.expect(entity, 'position', Vec2);
+        this.rotation = Kai.expect(entity, 'rotation', Vec2);
+        this.velocity = Kai.expect(entity, 'velocity', Vec2);
+        this.groupControl = new Signal();
+    };
+    Boid.accessor = 'boid';
+    Boid.className = 'BOID';
+    Boid.priority = 95;
+    Boid.post = false;
+    Boid.prototype = {
+        constructor: Boid,
+        activate: function () {
+            this.active = true;
+            this._currentPathNode = 0;
+            this._pathDir = 1;
+            this._arrived = false;
+        },
+        disable: function () {
+            this.active = false;
+        },
+        update: function () {
+            this.steeringForce.truncate(this.maxForce);
+            this.steeringForce.multiplyScalar(this.entity.body.invmass);
+            this.velocity.x += this.steeringForce.x;
+            this.velocity.y += this.steeringForce.y;
+            this.rotation.x = this.velocity.x;
+            this.rotation.y = this.velocity.y;
+            this.steeringForce.x = 0;
+            this.steeringForce.y = 0;
+        },
+        dispose: function () {
+            this.groupControl.dispose();
+            this.groupControl = null;
+            this.entity = null;
+            this.steeringForce = null;
+            this.position = null;
+            this.rotation = null;
+            this.velocity = null;
+        }
+    };
+    return Boid;
+}({}, von['Kai'], von['Tools'], von['World'], von['MathTools'], von['Base']);
+von['StackFSM'] = function (require, Tools, Base) {
+    var Tools = von['Tools'];
+    var StackFSM = function (entity) {
+        von['Base'].call(this);
+        this.state = null;
+        this.stack = [];
+        this.entity = entity;
+        this.stateChanged = new Signal();
+        this._activeContext = null;
+        this._activeFunction = null;
+        this._prevFunction = null;
+    };
+    StackFSM.accessor = 'stackFSM';
+    StackFSM.className = 'STACK_FSM';
+    StackFSM.priority = 5;
+    StackFSM.post = false;
+    StackFSM.prototype = {
+        constructor: StackFSM,
+        activate: function () {
+            this.active = true;
+        },
+        disable: function () {
+            this.active = false;
+            this.reset();
+        },
+        reset: function () {
+            this.stack.length = 0;
+            this._prevFunction = null;
+            this._activeFunction = null;
+        },
+        pushState: function (state, ctx) {
+            if (state !== this._activeFunction) {
+                this.stack.push(state);
+                this._activeContext = ctx;
+                if (!this.active) {
+                    this.activate();
+                }
+            }
+        },
+        popState: function () {
+            this.stack.pop();
+            this._activeFunction = this.stack.length ? this.stack[this.stack.length - 1] : null;
+            if (!this._activeFunction) {
+                this.stateChanged.dispatch(this.state, 'null');
+                this._prevFunction = null;
+                this.disable();
+            }
+        },
+        update: function () {
+            this._activeFunction = this.stack.length ? this.stack[this.stack.length - 1] : null;
+            if (this._activeFunction) {
+                if (this._activeFunction !== this._prevFunction) {
+                    this.state = this._activeFunction.name;
+                    this.stateChanged.dispatch(this._prevFunction ? this._prevFunction.name : 'null', this.state);
+                    this._prevFunction = this._activeFunction;
+                }
+                this._activeFunction.call(this._activeContext);
+            }
+        },
+        dispose: function () {
+            this.entity = null;
+            this._activeFunction = null;
+            this._prevFunction = null;
+            this.stack = null;
+            this.stateChanged.dispose();
+            this.stateChanged = null;
+        }
+    };
+    return StackFSM;
+}({}, von['Tools'], von['Base']);
 /*
 	requirejs passes in the loaded classes into the callback's arguments pseudo-array,
 	so we take advantage of that and go through that array, creating a plain object
@@ -2715,6 +2877,293 @@ von['GridTargeter'] = function (require, World, Tools, Base) {
 	
 	@author Corey Birnbaum
 */
-von['VonComponents'] = function (AABB2, AABB3, RadialCollider2, CollisionGridScanner, Health, TwinStickMovement, Timer, Wander, GridTargeter) {
+von['VonComponents'] = function (AABB2, AABB3, RadialCollider2, CollisionGridScanner, Health, TwinStickMovement, Timer, GridTargeter, Boid, StackFSM) {
     return von['Kai'].registerComponents(arguments);
-}(von['AABB2'], von['AABB3'], von['RadialCollider2'], von['CollisionGridScanner'], von['Health'], von['TwinStickMovement'], von['Timer'], von['Wander'], von['GridTargeter']);
+}(von['AABB2'], von['AABB3'], von['RadialCollider2'], von['CollisionGridScanner'], von['Health'], von['TwinStickMovement'], von['Timer'], von['GridTargeter'], von['Boid'], von['StackFSM']);
+von['CollisionGrid'] = function (require, Kai, World, Physics2) {
+    var Kai = von['Kai'];
+    var World = von['World'];
+    var Physics = von['Physics2'];
+    return function CollisionGrid(cellSize) {
+        this.cellPixelSize = cellSize;
+        this.widthInCells = Math.floor(World.width / cellSize) + 1;
+        this.heightInCells = Math.floor(World.height / cellSize) + 1;
+        this.numCells = this.widthInCells * this.heightInCells;
+        var _self = this, _nearbyList = new LinkedList(), _cells = [], _lengths = [], _itemList = new LinkedList(), _sizeMulti = 1 / this.cellPixelSize;
+        var _normal = new Vec2(), _rv = new Vec2(), _impulse = new Vec2(), _mtd = new Vec2(), _difference = new Vec2();
+        this.update = function () {
+            var i, cell, cellPos, cellNode, m, node, item, other;
+            var x, y, minX, minY, maxX, maxY, gridRadius;
+            for (i = 0; i < this.numCells; i++) {
+                _cells[i].clear();
+            }
+            node = _itemList.first;
+            while (node) {
+                item = node.obj;
+                if (!item.solid) {
+                    node = node.next;
+                    continue;
+                }
+                gridRadius = Math.ceil(item.radius * _sizeMulti);
+                itemX = ~~(item.position.x * _sizeMulti);
+                itemY = ~~(item.position.y * _sizeMulti);
+                minX = itemX - gridRadius;
+                if (minX < 0)
+                    minX = 0;
+                minY = itemY - gridRadius;
+                if (minY < 0)
+                    minY = 0;
+                maxX = itemX + gridRadius;
+                if (maxX > this.widthInCells)
+                    maxX = this.widthInCells;
+                maxY = itemY + gridRadius;
+                if (maxY > this.heightInCells)
+                    maxY = this.heightInCells;
+                for (x = minX; x <= maxX; x++) {
+                    for (y = minY; y <= maxY; y++) {
+                        cellPos = x * this.heightInCells + y;
+                        cell = _cells[cellPos];
+                        if (!cell)
+                            continue;
+                        cellNode = cell.first;
+                        while (cellNode) {
+                            other = cellNode.obj;
+                            if (!other.solid || other.collisionId === item.collisionId) {
+                                cellNode = cellNode.next;
+                                continue;
+                            }
+                            m = Physics.separateCircleVsCircle(item, other);
+                            if (m) {
+                                Physics.resolve(item, other, m);
+                                item.onCollision.dispatch(other, m);
+                                other.onCollision.dispatch(item, m);
+                            }
+                            cellNode = cellNode.next;
+                        }
+                        _cells[cellPos].add(item);
+                    }
+                }
+                node = node.next;
+            }
+        };
+        this.draw = function (offsetX, offsetY) {
+            var i, j, node, ctx = Kai.debugCtx;
+            offsetX = offsetX || 0;
+            offsetY = offsetY || 0;
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            for (i = 0; i < this.widthInCells; i++) {
+                for (j = 0; j < this.heightInCells; j++) {
+                    ctx.strokeRect(i * this.cellPixelSize + offsetX, j * this.cellPixelSize + offsetY, this.cellPixelSize, this.cellPixelSize);
+                }
+            }
+            node = _itemList.first;
+            while (node) {
+                node.obj.debugDraw(ctx);
+                node = node.next;
+            }
+        };
+        this.add = function (obj) {
+            _itemList.add(obj);
+        };
+        this.remove = function (obj) {
+            _itemList.remove(obj);
+        };
+        this.getNeighbors = function (body, pixelRadius, list) {
+            var x, y, dx, dy, cell, node, other, cellPos, minX, minY, maxX, maxY, influence = pixelRadius * pixelRadius, gridRadius = Math.ceil(pixelRadius * _sizeMulti), pos = body.position, itemX = ~~(pos.x * _sizeMulti), itemY = ~~(pos.y * _sizeMulti);
+            if (!list) {
+                list = _nearbyList;
+            }
+            list.clear();
+            minX = itemX - gridRadius;
+            if (minX < 0)
+                minX = 0;
+            minY = itemY - gridRadius;
+            if (minY < 0)
+                minY = 0;
+            maxX = itemX + gridRadius;
+            if (maxX > this.widthInCells)
+                maxX = this.widthInCells;
+            maxY = itemY + gridRadius;
+            if (maxY > this.heightInCells)
+                maxY = this.heightInCells;
+            for (x = minX; x <= maxX; x++) {
+                for (y = minY; y <= maxY; y++) {
+                    cellPos = x * this.heightInCells + y;
+                    cell = _cells[cellPos];
+                    if (!cell)
+                        continue;
+                    node = cell.first;
+                    while (node) {
+                        other = node.obj;
+                        if (!other.solid || other.collisionId === body.collisionId) {
+                            node = node.next;
+                            continue;
+                        }
+                        dx = pos.x - other.position.x;
+                        dy = pos.y - other.position.y;
+                        if (dx * dx + dy * dy <= influence) {
+                            list.add(other);
+                        }
+                        node = node.next;
+                    }
+                }
+            }
+            return list;
+        };
+        this.getNearby = function (pos, pixelRadius, list) {
+            var x, y, dx, dy, cell, node, other, cellPos, minX, minY, maxX, maxY, influence = pixelRadius * pixelRadius, gridRadius = Math.ceil(pixelRadius * _sizeMulti), itemX = ~~(pos.x * _sizeMulti), itemY = ~~(pos.y * _sizeMulti);
+            if (!list) {
+                _nearbyList.clear();
+                list = _nearbyList;
+            }
+            minX = itemX - gridRadius;
+            if (minX < 0)
+                minX = 0;
+            minY = itemY - gridRadius;
+            if (minY < 0)
+                minY = 0;
+            maxX = itemX + gridRadius;
+            if (maxX > this.widthInCells)
+                maxX = this.widthInCells;
+            maxY = itemY + gridRadius;
+            if (maxY > this.heightInCells)
+                maxY = this.heightInCells;
+            for (x = minX; x <= maxX; x++) {
+                for (y = minY; y <= maxY; y++) {
+                    cellPos = x * this.heightInCells + y;
+                    cell = _cells[cellPos];
+                    if (!cell)
+                        continue;
+                    node = cell.first;
+                    while (node) {
+                        other = node.obj;
+                        dx = pos.x - other.position.x;
+                        dy = pos.y - other.position.y;
+                        if (dx * dx + dy * dy <= influence) {
+                            list.add(other);
+                        }
+                        node = node.next;
+                    }
+                }
+            }
+            return list;
+        };
+        this.getAllInArea = function (startX, startY, endX, endY, list) {
+            var x, y, cell, node, other, cellPos, minX, minY, maxX, maxY;
+            if (!list) {
+                _nearbyList.clear();
+                list = _nearbyList;
+            }
+            minX = ~~(startX * _sizeMulti);
+            minY = ~~(startY * _sizeMulti);
+            maxX = endX * _sizeMulti + 1 >> 0;
+            if (maxX > this.widthInCells)
+                maxX = this.widthInCells;
+            maxY = endY * _sizeMulti + 1 >> 0;
+            if (maxY > this.heightInCells)
+                maxY = this.heightInCells;
+            for (x = minX; x <= maxX; x++) {
+                for (y = minY; y <= maxY; y++) {
+                    cellPos = x * this.heightInCells + y;
+                    cell = _cells[cellPos];
+                    if (!cell)
+                        continue;
+                    node = cell.first;
+                    while (node) {
+                        other = node.obj;
+                        node = node.next;
+                        if (other.position.x > endX || other.position.x < startX || other.position.y > endY || other.position.y < startY) {
+                            continue;
+                        }
+                        list.add(other);
+                    }
+                }
+            }
+            return list;
+        };
+        this.log = function () {
+            console.log('Cells: ' + _cells.length);
+        };
+        init();
+        function init() {
+            var i, j;
+            for (i = 0; i < _self.numCells; i++) {
+                _cells[i] = new LinkedList();
+            }
+            console.log('[CollisionGrid] ' + _self.widthInCells + 'x' + _self.heightInCells + ': ' + _self.numCells + ' cells');
+        }
+    };
+}({}, von['Kai'], von['World'], von['Physics2']);
+// DOM utility functions
+von['DOMTools'] = {
+    copySpatial: function (fromElement, toElement) {
+        var rect = fromElement.getBoundingClientRect(), aStyle = fromElement.style, bStyle = toElement.style;
+        bStyle.position = 'absolute';
+        bStyle.top = rect.top + 'px';
+        bStyle.left = rect.left + 'px';
+        if (fromElement.nodeName === 'CANVAS') {
+            toElement.width = fromElement.width;
+            toElement.height = fromElement.height;
+        } else {
+            bStyle.width = fromElement.offsetWidth;
+            bStyle.height = fromElement.offsetHeight;
+        }
+    }
+};
+von['DualPool'] = function (require) {
+    var DualPool = function (classConstructor, instanceSettings, initSize) {
+        var obj;
+        this._Class = classConstructor;
+        this._freeList = new LinkedList();
+        this._busyList = new LinkedList();
+        this._settings = instanceSettings || {};
+        this._settings.pool = this;
+        this.size = initSize;
+        for (var i = 0; i < this.size; i++) {
+            this._freeList.add(new this._Class(this._settings));
+        }
+    };
+    DualPool.prototype = {
+        constructor: DualPool,
+        get: function () {
+            var obj;
+            if (this._freeList.length) {
+                obj = this._freeList.pop();
+                this._busyList.add(obj);
+                return obj;
+            }
+            obj = new this._Class(this._settings);
+            this._busyList.add(obj);
+            this.size++;
+            return obj;
+        },
+        recycle: function (obj) {
+            if (this._busyList.has(obj)) {
+                this._busyList.remove(obj);
+                this._freeList.add(obj);
+            }
+        },
+        freeAll: function () {
+            var obj, node = this._busyList.first;
+            while (node) {
+                obj = node.obj;
+                this._busyList.remove(obj);
+                this._freeList.add(obj);
+                node = node.next;
+            }
+        },
+        dispose: function () {
+            this._freeList.dispose();
+            this._busyList.dispose();
+            this._freeList = null;
+            this._busyList = null;
+            this._Class = null;
+            this._settings = null;
+        },
+        toString: function () {
+            return '[DualPool size: ' + this.size + ', free: ' + this._freeList.length + ', busy: ' + this._busyList.length + ']';
+        }
+    };
+    return DualPool;
+}({});

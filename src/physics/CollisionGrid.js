@@ -227,6 +227,47 @@ return function CollisionGrid(cellSize) {
 		return list;
 	};
 	
+	// same as getNearby but for square area
+	this.getAllInArea = function(startX, startY, endX, endY, list) {
+		var x, y, cell, node, other, cellPos, minX, minY, maxX, maxY;
+		
+		if (!list) {
+			_nearbyList.clear();
+			list = _nearbyList;
+		}
+		
+		// enforce grid boundaries:
+		minX = ~~(startX * _sizeMulti);
+		// if (minX < 0) minX = 0; // positions should always be positive... i think
+		minY = ~~(startY * _sizeMulti);
+		// if (minY < 0) minY = 0;
+		maxX = ((endX * _sizeMulti) + 1) >> 0; // bitwise math.ceil for positive numbers
+		if (maxX > this.widthInCells) maxX = this.widthInCells;
+		maxY = ((endY * _sizeMulti) + 1) >> 0;
+		if (maxY > this.heightInCells) maxY = this.heightInCells;
+		
+		for (x = minX; x <= maxX; x++) {
+			for (y = minY; y <= maxY; y++) {
+				cellPos = (x * this.heightInCells) + y;
+				cell = _cells[cellPos];
+				if (!cell) continue;
+				
+				node = cell.first;
+				while (node) {
+					other = node.obj;
+					node = node.next;
+					
+					if (other.position.x > endX || other.position.x < startX || other.position.y > endY || other.position.y < startY) {
+						continue;
+					}
+					list.add(other);
+				}
+			}
+		}
+		
+		return list;
+	};
+	
 	this.log = function() {
 		console.log('Cells: '+_cells.length);
 	};

@@ -66,6 +66,12 @@ var LinkedList = function() {
 		this.objToNodeMap[obj.uniqueId] = node;
 		return node;
 	};
+	
+	this.swapObjects = function(node, newObj) {
+		this.objToNodeMap[node.obj.uniqueId] = null;
+		this.objToNodeMap[newObj.uniqueId] = node;
+		node.obj = newObj;
+	};
 
 	/**
 	 * Add an item to the list
@@ -271,6 +277,17 @@ var LinkedList = function() {
 
 		this.length--;
 		return node.obj;
+	};
+	
+	/**
+	 * Add the passed list to this list, leaving it untouched.
+	 */
+	this.concat = function(list) {
+		var node = list.first;
+		while (node) {
+			this.add(node.obj);
+			node = node.next;
+		}
 	};
 
 	/**

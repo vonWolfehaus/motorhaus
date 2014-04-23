@@ -8,7 +8,7 @@ var Kai = require('core/Kai');
 var Tools = require('utils/Tools');
 var World = require('core/World');
 var MathTools = require('math/MathTools');
-var DebugDraw = require('utils/DebugDraw');
+// var DebugDraw = require('utils/DebugDraw');
 
 // constructor
 var Boid = function(entity, settings) {
@@ -83,22 +83,12 @@ Boid.prototype = {
 		// steeringForce has been modified by Steering so cap it and apply
 		this.steeringForce.truncate(this.maxForce);
 		
-		if (this.entity.body) {
-			// let physical mass affect movement
-			this.steeringForce.multiplyScalar(this.entity.body.invmass);
-		}
-		
+		// let physical mass affect movement
+		this.steeringForce.multiplyScalar(this.entity.body.invmass);
 		// DebugDraw.vector(Kai.debugCtx, this.steeringForce, this.position);
 
 		this.velocity.x += this.steeringForce.x;
 		this.velocity.y += this.steeringForce.y;
-		
-		// the velocity will be applied in the physics component if there is one
-		if (!this.entity.body) {
-			this.velocity.truncate(this.maxSpeed);
-			this.position.x += this.velocity.x * World.elapsed;
-			this.position.y += this.velocity.y * World.elapsed;
-		}
 		
 		// adjust rotation to match the velocity vector--the view component will take care of the rest
 		this.rotation.x = this.velocity.x;
@@ -110,9 +100,13 @@ Boid.prototype = {
 	},
 	
 	dispose: function() {
+		this.groupControl.dispose();
+		this.groupControl = null;
 		this.entity = null;
+		this.steeringForce = null;
 		this.position = null;
 		this.rotation = null;
+		this.velocity = null;
 	}
 };
 

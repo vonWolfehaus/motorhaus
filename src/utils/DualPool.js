@@ -36,6 +36,8 @@ DualPool.prototype = {
 		obj = new this._Class(this._settings);
 		this._busyList.add(obj);
 		this.size++;
+		// console.log('[DualPool.get] Free: '+this._freeList.length+'; Busy: '+this._busyList.length);
+		
 		return obj;
 	},
 	
@@ -48,6 +50,7 @@ DualPool.prototype = {
 			// already in free, or not in either list
 			console.log('[DualPool.recycle] Object ignored');
 		}*/
+		// console.log('[DualPool.recycle] Free: '+this._freeList.length+'; Busy: '+this._busyList.length);
 	},
 	
 	freeAll: function() {
