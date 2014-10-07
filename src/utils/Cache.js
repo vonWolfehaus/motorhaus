@@ -424,14 +424,11 @@ Cache.prototype = {
 	* @return {object} The image data you want.
 	*/
 	getImage: function (key) {
-
-		if (this._images[key])
-		{
+		if (this._images[key]) {
 			return this._images[key].data;
 		}
-
+		console.warn('[Cache.getImage] '+key+' does not exist in cache--did you forget to load it?');
 		return null;
-
 	},
 
 	/**
