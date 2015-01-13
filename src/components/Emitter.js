@@ -6,6 +6,7 @@ var Vec2 = require('math/Vec2');
 /*
 	A basic particle emitter: point and area emission, and a few dynamic force types.
 	Does not require an entity.
+	Based on https://github.com/city41/particle.js
  */
 var Emitter = function(entity, settings) {
 	require('core/Base').call(this);
