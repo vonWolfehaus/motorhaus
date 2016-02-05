@@ -1,6 +1,8 @@
 var gulp = require('gulp');
 var rjsOptimize = require('gulp-requirejs-optimize');
 var sourcemaps = require('gulp-sourcemaps');
+var notify = require('gulp-notify');
+var plumber = require('gulp-plumber');
 var fs = require('fs');
 var del = require('del');
 var browserSync = require('browser-sync').create();
@@ -28,6 +30,7 @@ gulp.task('scripts', ['clean'], function() {
 	var these = ['components/VonComponents', 'physics/CollisionGrid',
 				'utils/DebugDraw', 'utils/DOMTools', 'utils/DualPool', 'utils/Tools'];
 	return gulp.src(src+'/core/Engine.js')
+		.pipe(plumber({errorHandler: handleErrors}))
 		.pipe(sourcemaps.init())
 		.pipe(rjsOptimize({
 			baseUrl: src,
@@ -50,57 +53,41 @@ gulp.task('scripts', ['clean'], function() {
 			preserveLicenseComments: false,
 			findNestedDependencies: true,
 			wrap: false/*{
-				startFile: 'wrapper/banner.js',
+				startFile: 'wrapper/intro.js',
 				endFile: 'wrapper/outro.js'
 			}*/
 		}))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest(dist));
+		.pipe(gulp.dest(dist))
+		.pipe(browserSync.stream());
 });
 
 /*----------------------------------------------------------------------
 	SERVER
 */
 
-// Defines the list of resources to watch for changes.
-// function watch() {
-// 	gulp.watch(glob.scripts, ['scripts', reload]);
-// }
+gulp.task('examples', function() {
+	browserSync.init({
+		notify: false,
+		server: {
+			baseDir: ['./', './examples'],
+			index: './examples/index.html'
+		}
+	});
 
-// function serve(dir) {
-// 	browserSync.init({
-// 		notify: false,
-// 		server: {
-// 			baseDir: ['./', './'+dir],
-// 			index: './'+dir+'/index.html'
-// 		}
-// 	});
-
-// 	browserSync.watch(dist+'/**/*.*').on('change', reload);
-// 	gulp.watch(glob.scripts, ['scripts']);
-// }
-
-// gulp.task('watch', function() {
-// 	watch();
-// });
-
-// gulp.task('serve', function() {
-// 	serve('editor');
-// });
-
-// gulp.task('serve-examples', function() {
-// 	browserSync.watch('examples/**/*.*').on('change', reload);
-// 	serve('examples');
-// });
+	browserSync.watch('examples/**/*.*').on('change', reload);
+	browserSync.watch(dist+'/**/*.*').on('change', reload);
+	gulp.watch(glob.scripts, ['scripts']);
+});
 
 /*----------------------------------------------------------------------
 	HELPERS
 */
 
-/*function handleErrors() {
+function handleErrors() {
 	var args = Array.prototype.slice.call(arguments);
 	// Send error to notification center with gulp-notify
-	$.notify.onError({
+	notify.onError({
 		title: 'Build error',
 		message: '<%= error%>',
 		showStack: true
@@ -108,4 +95,4 @@ gulp.task('scripts', ['clean'], function() {
 
 	// Keep gulp from hanging on this task
 	this.emit('end');
-}*/
+}
