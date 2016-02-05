@@ -1,21 +1,22 @@
 {
-  "name": "von-component",
+  "name": "motorhaus",
   "author": {
     "name": "Corey Birnbaum",
     "email": "vonWolfehaus@gmail.com",
-    "url": "https://github.com/vonWolfehaus/von-component"
+    "url": "https://github.com/vonWolfehaus/motorhaus"
   },
+  "license": "MIT",
   "version": "0.1.0",
-  "description": "Entity component framework.",
+  "description": "Entity component system",
   "dependencies": {},
   "devDependencies": {
+    "amdclean": "~1.3.0",
+    "browser-sync": "^2.11.1",
+    "del": "^2.2.0",
     "gulp": "~3.5.0",
-    "gulp-requirejs": "~0.1.3",
-    "gulp-uglify": "~0.2.0",
-    "gulp-util": "~2.2.14",
-    "gulp-concat": "~2.1.7",
-    "gulp-rename": "~1.0.0",
-    "amdclean": "~1.3.0"
+    "gulp-requirejs-optimize": "^0.3.1",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-util": "~2.2.14"
   },
   "repository": {}
 }
