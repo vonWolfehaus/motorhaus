@@ -19,7 +19,7 @@
 		}
 		canvas {
 			pointer-events: none;
-			
+
 		}
 	</style>
 </head>
@@ -30,7 +30,7 @@
 
 
 <script type="text/javascript" src="../../lib/easeljs-0.7.1.min.js"></script>
-<script type="text/javascript" src="../../dist/von-component-min.js"></script>
+<script type="text/javascript" src="../../dist/motorhaus.min.js"></script>
 <script type="text/javascript" src="../../lib/require.js"></script>
 <script type="text/javascript">
 require.config({
@@ -38,13 +38,13 @@ require.config({
 });
 require(['TestBasic'],
 	function(TestBasic) {
-		
-		var engine = new von.Engine();
-		
+
+		var engine = new mh.Engine();
+
 		engine.state.add('Start', TestBasic);
-		
+
 		engine.start('Start');
-		
+
 });
 </script>
 </body>

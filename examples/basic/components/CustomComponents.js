@@ -7,5 +7,5 @@ define(
 		'components/SeekMouse',
 		'components/EASELBitmap'
 	],
-	function() { return von.Kai.registerComponents(arguments); }
+	function() { return mh.Kai.registerComponents(arguments); }
 );
