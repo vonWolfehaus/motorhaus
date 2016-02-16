@@ -45,7 +45,6 @@ var Engine = function() {
 		document.addEventListener('DOMContentLoaded', this._onInit, false);
 		window.addEventListener('load', this._onInit, false);
 	}
-
 };
 
 
