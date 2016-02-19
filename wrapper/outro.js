@@ -1,2 +1,0 @@
-return require('core/Engine');
-}));

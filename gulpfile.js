@@ -1,8 +1,10 @@
 var gulp = require('gulp');
-var rjsOptimize = require('gulp-requirejs-optimize');
 var sourcemaps = require('gulp-sourcemaps');
 var notify = require('gulp-notify');
 var plumber = require('gulp-plumber');
+var concat = require('gulp-concat');
+var uglify = require('gulp-uglify');
+var eslint = require('gulp-eslint');
 var fs = require('fs');
 var del = require('del');
 var browserSync = require('browser-sync').create();
@@ -12,57 +14,51 @@ var dist = 'dist';
 var src = 'src';
 
 var glob = {
-	scripts: [src+'/**/*.js']
+	scripts: [src+'/core/motorhaus.js', src+'/**/*.js', '!'+src+'/extras/**/*.js'],
+	extras: [src+'/extras/**/*.js']
 };
 
-/*----------------------------------------------------------------------
+/*______________________________________________________________________
 	MACRO
 */
 
 gulp.task('default', ['scripts']);
+gulp.task('dev', ['scripts', /*'extras',*/ 'examples']);
 gulp.task('clean', del.bind(null, [dist]));
 
-/*----------------------------------------------------------------------
+/*______________________________________________________________________
 	SCRIPTS
 */
 
 gulp.task('scripts', ['clean'], function() {
-	var these = ['components/VonComponents', 'physics/CollisionGrid',
-				'utils/DebugDraw', 'utils/DOMTools', 'utils/DualPool', 'utils/Tools'];
-	return gulp.src(src+'/core/Engine.js')
+	return gulp.src(glob.scripts)
 		.pipe(plumber({errorHandler: handleErrors}))
+		.pipe(eslint({ fix: true }))
+		.pipe(eslint.formatEach())
+		.pipe(eslint.failOnError())
 		.pipe(sourcemaps.init())
-		.pipe(rjsOptimize({
-			baseUrl: src,
-			name: 'core/Engine',
-			include: these,
-			onBuildWrite: function(name, path, contents) {
-				return require('amdclean').clean({
-					code: contents,
-					removeAllRequires: true,
-					prefixTransform: function(moduleName) {
-						return moduleName.substring(moduleName.lastIndexOf('_') + 1, moduleName.length);
-					},
-					globalObject: true,
-					globalObjectName: 'mh'/*,
-					globalModules: []*/
-				});
-			},
-			out: 'motorhaus.min.js',
-			optimize: 'uglify2',
-			preserveLicenseComments: false,
-			findNestedDependencies: true,
-			wrap: false/*{
-				startFile: 'wrapper/intro.js',
-				endFile: 'wrapper/outro.js'
-			}*/
-		}))
+		.pipe(concat('motorhaus.min.js'))
+		.pipe(uglify())
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest(dist))
 		.pipe(browserSync.stream());
 });
 
-/*----------------------------------------------------------------------
+gulp.task('extras', function() {
+	return gulp.src(glob.extras)
+		.pipe(plumber({errorHandler: handleErrors}))
+		// .pipe(eslint({ fix: true }))
+		// .pipe(eslint.formatEach())
+		// .pipe(eslint.failOnError())
+		.pipe(sourcemaps.init())
+		.pipe(concat('motorhaus-extras.min.js'))
+		// .pipe(uglify())
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest(dist))
+		.pipe(browserSync.stream());
+});
+
+/*______________________________________________________________________
 	SERVER
 */
 
@@ -80,7 +76,7 @@ gulp.task('examples', function() {
 	gulp.watch(glob.scripts, ['scripts']);
 });
 
-/*----------------------------------------------------------------------
+/*______________________________________________________________________
 	HELPERS
 */
 

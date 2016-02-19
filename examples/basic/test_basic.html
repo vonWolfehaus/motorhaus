@@ -9,43 +9,30 @@
 			box-sizing: border-box;
 		}
 		body {
+			background: #212121;
 			color: #fff;
-			background: #151515;
 			overflow: hidden;
-			text-align: center;
-			user-select: none;
-			-moz-user-select: none;
-			-webkit-user-select: none;
 		}
 		canvas {
-			pointer-events: none;
-
+			position: absolute;
+			left: 0; right: 0; top: 0; bottom: 0;
+			margin: auto;
 		}
 	</style>
 </head>
 <body>
 
-<canvas id="stage"></canvas>
-<canvas id="debug"></canvas>
+	<canvas id="view"></canvas>
 
-
-<script type="text/javascript" src="../../lib/easeljs-0.7.1.min.js"></script>
-<script type="text/javascript" src="../../dist/motorhaus.min.js"></script>
-<script type="text/javascript" src="../../lib/require.js"></script>
-<script type="text/javascript">
-require.config({
-	baseUrl: '.',
-});
-require(['TestBasic'],
-	function(TestBasic) {
-
+	<script type="text/javascript" src="../_shared/vendor/three.min.js"></script>
+	<script type="text/javascript" src="../../dist/motorhaus.min.js"></script>
+	<!-- <script type="text/javascript" src="../../dist/motorhaus-extras.min.js"></script> -->
+	<script type="text/javascript" src="TestBasic.js"></script>
+	<!-- <script type="text/javascript" src="components.js"></script> -->
+	<script type="text/javascript">
 		var engine = new mh.Engine();
-
-		engine.state.add('Start', TestBasic);
-
+		engine.state.add('Start', ex.TestBasic);
 		engine.start('Start');
-
-});
-</script>
+	</script>
 </body>
 </html>

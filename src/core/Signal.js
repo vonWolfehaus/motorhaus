@@ -1,221 +1,226 @@
-define(function() {
-    var SignalBinding = function(signal, listener, isOnce, listenerContext, priority) {
-        if (typeof priority === "undefined") { priority = 0; }
-        this.active = true;
-        this.params = null;
-        this._listener = listener;
-        this._isOnce = isOnce;
-        this.context = listenerContext;
-        this._signal = signal;
-        this.priority = priority || 0;
-    };
-    SignalBinding.prototype.execute = function (paramsArr) {
-        var handlerReturn;
-        var params;
+mh.SignalBinding = function(signal, listener, isOnce, listenerContext, priority) {
+	if (typeof priority === 'undefined') { priority = 0; }
+	this.active = true;
+	this.params = null;
+	this._listener = listener;
+	this._isOnce = isOnce;
+	this.context = listenerContext;
+	this._signal = signal;
+	this.priority = priority || 0;
+};
 
-        if (this.active && !!this._listener) {
-            params = this.params ? this.params.concat(paramsArr) : paramsArr;
+mh.SignalBinding.prototype ={
+	constructor: mh.SignalBinding,
 
-            handlerReturn = this._listener.apply(this.context, params);
+	execute: function(paramsArr) {
+		var handlerReturn;
+		var params;
 
-            if (this._isOnce) {
-                this.detach();
-            }
-        }
+		if (this.active && !!this._listener) {
+			params = this.params ? this.params.concat(paramsArr) : paramsArr;
 
-        return handlerReturn;
-    };
+			handlerReturn = this._listener.apply(this.context, params);
 
-    SignalBinding.prototype.detach = function () {
-        return this.isBound() ? this._signal.remove(this._listener, this.context) : null;
-    };
+			if (this._isOnce) {
+				this.detach();
+			}
+		}
 
-    SignalBinding.prototype.isBound = function () {
-        return (!!this._signal && !!this._listener);
-    };
+		return handlerReturn;
+	},
 
-    SignalBinding.prototype.isOnce = function () {
-        return this._isOnce;
-    };
+	detach: function() {
+		return this.isBound() ? this._signal.remove(this._listener, this.context) : null;
+	},
 
-    SignalBinding.prototype.getListener = function () {
-        return this._listener;
-    };
+	isBound: function() {
+		return (!!this._signal && !!this._listener);
+	},
 
-    SignalBinding.prototype.getSignal = function () {
-        return this._signal;
-    };
+	isOnce: function() {
+		return this._isOnce;
+	},
 
-    SignalBinding.prototype._destroy = function () {
-        delete this._signal;
-        delete this._listener;
-        delete this.context;
-    };
+	getListener: function() {
+		return this._listener;
+	},
 
-    SignalBinding.prototype.toString = function () {
-        return '[SignalBinding isOnce:' + this._isOnce + ', isBound:' + this.isBound() + ', active:' + this.active + ']';
-    };
-    
-    window.SignalBinding = SignalBinding;
-    
-    var Signal = function() {
-        this._bindings = [];
-        this._prevParams = null;
-        this.memorize = false;
-        this._shouldPropagate = true;
-        this.active = true;
-    };
-    Signal.prototype.validateListener = function (listener, fnName) {
-        if (typeof listener !== 'function') {
-            throw new Error('listener is a required param of {fn}() and should be a Function.'.replace('{fn}', fnName));
-        }
-    };
+	getSignal: function() {
+		return this._signal;
+	},
 
-    Signal.prototype._registerListener = function (listener, isOnce, listenerContext, priority) {
-        var prevIndex = this._indexOfListener(listener, listenerContext);
-        var binding;
+	_destroy: function() {
+		delete this._signal;
+		delete this._listener;
+		delete this.context;
+	},
 
-        if (prevIndex !== -1) {
-            binding = this._bindings[prevIndex];
+	toString: function() {
+		return '[SignalBinding isOnce:' + this._isOnce + ', isBound:' + this.isBound() + ', active:' + this.active + ']';
+	}
+};
 
-            if (binding.isOnce() !== isOnce) {
-                throw new Error('You cannot add' + (isOnce ? '' : 'Once') + '() then add' + (!isOnce ? '' : 'Once') + '() the same listener without removing the relationship first.');
-            }
-        } else {
-            binding = new SignalBinding(this, listener, isOnce, listenerContext, priority);
+mh.Signal = function() {
+	this._bindings = [];
+	this._prevParams = null;
+	this.memorize = false;
+	this._shouldPropagate = true;
+	this.active = true;
+},
 
-            this._addBinding(binding);
-        }
+mh.Signal.prototype = {
+	constructor: mh.Signal,
 
-        if (this.memorize && this._prevParams) {
-            binding.execute(this._prevParams);
-        }
+	validateListener: function(listener, fnName) {
+		if (typeof listener !== 'function') {
+			throw new Error('listener is a required param of {fn}() and should be a Function.'.replace('{fn}', fnName));
+		}
+	},
 
-        return binding;
-    };
+	_registerListener: function(listener, isOnce, listenerContext, priority) {
+		var prevIndex = this._indexOfListener(listener, listenerContext);
+		var binding;
 
-    Signal.prototype._addBinding = function (binding) {
-        var n = this._bindings.length;
+		if (prevIndex !== -1) {
+			binding = this._bindings[prevIndex];
 
-        do {
-            --n;
-        } while(this._bindings[n] && binding.priority <= this._bindings[n].priority);
+			if (binding.isOnce() !== isOnce) {
+				throw new Error('You cannot add' + (isOnce ? '' : 'Once') + '() then add' + (!isOnce ? '' : 'Once') + '() the same listener without removing the relationship first.');
+			}
+		}
+		else {
+			binding = new mh.SignalBinding(this, listener, isOnce, listenerContext, priority);
 
-        this._bindings.splice(n + 1, 0, binding);
-    };
+			this._addBinding(binding);
+		}
 
-    Signal.prototype._indexOfListener = function (listener, context) {
-        var n = this._bindings.length;
-        var cur;
+		if (this.memorize && this._prevParams) {
+			binding.execute(this._prevParams);
+		}
 
-        while (n--) {
-            cur = this._bindings[n];
+		return binding;
+	},
 
-            if (cur.getListener() === listener && cur.context === context) {
-                return n;
-            }
-        }
+	_addBinding: function(binding) {
+		var n = this._bindings.length;
 
-        return -1;
-    };
+		do {
+			--n;
+		}
+		while(this._bindings[n] && binding.priority <= this._bindings[n].priority);
 
-    Signal.prototype.has = function (listener, context) {
-        if (typeof context === "undefined") { context = null; }
-        return this._indexOfListener(listener, context) !== -1;
-    };
+		this._bindings.splice(n + 1, 0, binding);
+	},
 
-    Signal.prototype.add = function (listener, listenerContext, priority) {
-        if (typeof listenerContext === "undefined") { listenerContext = null; }
-        if (typeof priority === "undefined") { priority = 0; }
-        this.validateListener(listener, 'add');
+	_indexOfListener: function(listener, context) {
+		var n = this._bindings.length;
+		var cur;
 
-        return this._registerListener(listener, false, listenerContext, priority);
-    };
+		while (n--) {
+			cur = this._bindings[n];
 
-    Signal.prototype.addOnce = function (listener, listenerContext, priority) {
-        if (typeof listenerContext === "undefined") { listenerContext = null; }
-        if (typeof priority === "undefined") { priority = 0; }
-        this.validateListener(listener, 'addOnce');
+			if (cur.getListener() === listener && cur.context === context) {
+				return n;
+			}
+		}
 
-        return this._registerListener(listener, true, listenerContext, priority);
-    };
+		return -1;
+	},
 
-    Signal.prototype.remove = function (listener, context) {
-        if (typeof context === "undefined") { context = null; }
-        this.validateListener(listener, 'remove');
+	has: function(listener, context) {
+		if (typeof context === 'undefined') { context = null; }
+		return this._indexOfListener(listener, context) !== -1;
+	},
 
-        var i = this._indexOfListener(listener, context);
+	add: function(listener, listenerContext, priority) {
+		if (typeof listenerContext === 'undefined') { listenerContext = null; }
+		if (typeof priority === 'undefined') { priority = 0; }
+		this.validateListener(listener, 'add');
 
-        if (i !== -1) {
-            this._bindings[i]._destroy();
-            this._bindings.splice(i, 1);
-        }
+		return this._registerListener(listener, false, listenerContext, priority);
+	},
 
-        return listener;
-    };
+	addOnce: function(listener, listenerContext, priority) {
+		if (typeof listenerContext === 'undefined') { listenerContext = null; }
+		if (typeof priority === 'undefined') { priority = 0; }
+		this.validateListener(listener, 'addOnce');
 
-    Signal.prototype.removeAll = function () {
-        var n = this._bindings.length;
+		return this._registerListener(listener, true, listenerContext, priority);
+	},
 
-        while (n--) {
-            this._bindings[n]._destroy();
-        }
+	remove: function(listener, context) {
+		if (typeof context === 'undefined') { context = null; }
+		this.validateListener(listener, 'remove');
 
-        this._bindings.length = 0;
-    };
+		var i = this._indexOfListener(listener, context);
 
-    Signal.prototype.getNumListeners = function () {
-        return this._bindings.length;
-    };
+		if (i !== -1) {
+			this._bindings[i]._destroy();
+			this._bindings.splice(i, 1);
+		}
 
-    Signal.prototype.halt = function () {
-        this._shouldPropagate = false;
-    };
+		return listener;
+	},
 
-    Signal.prototype.dispatch = function () {
-        var paramsArr = [];
-        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-            paramsArr[_i] = arguments[_i + 0];
-        }
-        if (!this.active) {
-            return;
-        }
+	removeAll: function() {
+		var n = this._bindings.length;
 
-        var n = this._bindings.length;
-        var bindings;
+		while (n--) {
+			this._bindings[n]._destroy();
+		}
 
-        if (this.memorize) {
-            this._prevParams = paramsArr;
-        }
+		this._bindings.length = 0;
+	},
 
-        if (!n) {
-            return;
-        }
+	getNumListeners: function() {
+		return this._bindings.length;
+	},
 
-        bindings = this._bindings.slice(0);
+	halt: function() {
+		this._shouldPropagate = false;
+	},
 
-        this._shouldPropagate = true;
+	dispatch: function() {
+		var paramsArr = [];
+		for (var _i = 0; _i < (arguments.length - 0); _i++) {
+			paramsArr[_i] = arguments[_i + 0];
+		}
+		if (!this.active) {
+			return;
+		}
 
-        do {
-            n--;
-        } while(bindings[n] && this._shouldPropagate && bindings[n].execute(paramsArr) !== false);
-    };
+		var n = this._bindings.length;
+		var bindings;
 
-    Signal.prototype.forget = function () {
-        this._prevParams = null;
-    };
+		if (this.memorize) {
+			this._prevParams = paramsArr;
+		}
 
-    Signal.prototype.dispose = function () {
-        this.removeAll();
+		if (!n) {
+			return;
+		}
 
-        delete this._bindings;
-        delete this._prevParams;
-    };
+		bindings = this._bindings.slice(0);
 
-    Signal.prototype.toString = function () {
-        return '[Signal active:' + this.active + ' numListeners:' + this.getNumListeners() + ']';
-    };
-    Signal.VERSION = '1.0.0';
-    window.Signal = Signal;
-    return Signal;
-});
+		this._shouldPropagate = true;
+
+		do {
+			n--;
+		} while(bindings[n] && this._shouldPropagate && bindings[n].execute(paramsArr) !== false);
+	},
+
+	forget: function() {
+		this._prevParams = null;
+	},
+
+	dispose: function() {
+		this.removeAll();
+
+		delete this._bindings;
+		delete this._prevParams;
+	},
+
+	toString: function() {
+		return '[Signal active:' + this.active + ' numListeners:' + this.getNumListeners() + ']';
+	}
+};

@@ -1,10 +1,8 @@
-define(function() {
-var tau = Math.PI*2;
-var DebugDraw = {
+mh.debugDraw = {
 	circle: function(ctx, x, y, radius, color) {
 		color = color || 'rgb(200, 10, 30)';
 		ctx.beginPath();
-		ctx.arc(x, y, radius, 0, tau);
+		ctx.arc(x, y, radius, 0, mh.util.TAU);
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = color;
 		ctx.stroke();
@@ -13,7 +11,7 @@ var DebugDraw = {
 		color = color || 'rgb(200, 10, 30)';
 		radius = radius || 3;
 		ctx.beginPath();
-		ctx.arc(p.x, p.y, radius, 0, tau);
+		ctx.arc(p.x, p.y, radius, 0, mh.util.TAU);
 		ctx.fillStyle = color;
 		ctx.fill();
 	},
@@ -43,6 +41,3 @@ var DebugDraw = {
 		ctx.strokeRect(x - (sizeX*0.5), y - (sizeY*0.5), sizeX, sizeY);
 	}
 };
-
-return DebugDraw;
-});
