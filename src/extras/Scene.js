@@ -27,7 +27,7 @@ mh.Scene = function(sceneConfig, controlConfig) {
 	};
 
 	sceneSettings = mh.util.merge(sceneSettings, sceneConfig);
-	if (typeof controlConfig !== 'boolean') {
+	if (typeof controlConfig !== 'boolean' && typeof controlConfig !== 'undefined') {
 		controlSettings = mh.util.merge(controlSettings, controlConfig);
 	}
 
@@ -48,10 +48,10 @@ mh.Scene = function(sceneConfig, controlConfig) {
 
 	this.container.add(new THREE.AmbientLight(0xdddddd));
 
-	if (!sceneSettings.lightPosition) {
+	if (sceneSettings.light && !sceneSettings.lightPosition) {
 		sceneSettings.light.position.set(-1, 1, -1).normalize();
 	}
-	this.container.add(sceneSettings.light);
+	if (sceneSettings.light) this.container.add(sceneSettings.light);
 
 	if (sceneSettings.cameraType === 'OrthographicCamera') {
 		var width = window.innerWidth / this.orthoZoom;
@@ -136,5 +136,9 @@ mh.Scene.prototype = {
 
 	focusOn: function(obj) {
 		this.camera.lookAt(obj.position);
+	},
+
+	dispose: function() {
+
 	}
 };

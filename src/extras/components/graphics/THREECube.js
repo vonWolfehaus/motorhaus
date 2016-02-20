@@ -1,5 +1,5 @@
 /*
-	Abstracts threejs cube creation so it's compatible with our entity-component system.
+	Abstracts threejs cube creation so it integrates nicely into our entity-component system.
 	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
 */
 mh.THREECube = function(entity, settings) {
@@ -7,11 +7,12 @@ mh.THREECube = function(entity, settings) {
 	mh.Base.call(this);
 
 	// attributes
-	this.textureUrl = 'img/square-outline-textured.png';
+	this.textureUrl = null;
 	this.container = mh.kai.view;
 	this.size = 50;
-	this.dynamic = false;
-	this.color = 0xfeb74c;
+	// this.dynamic = false;
+	this.color = 0x156289;
+	this.emissive = 0x072534;
 
 	mh.util.overwrite(this, settings);
 
@@ -22,23 +23,24 @@ mh.THREECube = function(entity, settings) {
 	// NEVER do this in production! geo and materials should be cached!
 	// But I'm on vacation and this is prototype code so, meh
 	var cubeGeo = new THREE.CubeGeometry(this.size, this.size, this.size);
-	var cubeMaterial = new THREE.MeshLambertMaterial({
-		color: this.color,
-		ambient: this.color,
+	var cubeMaterial = new THREE.MeshPhongMaterial({
+		color: 0x156289,
+		emissive: 0x072534,
 		shading: THREE.FlatShading,
-		map: this.dynamic ? null : THREE.ImageUtils.loadTexture(this.textureUrl)
+		map: this.textureUrl ? THREE.ImageUtils.loadTexture(this.textureUrl) : null
 	});
 
 	this._display = new THREE.Mesh(cubeGeo, cubeMaterial);
 
-	if (!this.dynamic) {
+	/*if (!this.dynamic) {
 		this._display.matrixAutoUpdate = false;
 		this._display.position.copy(entity.position);
 		this._display.updateMatrix();
-	}
+	}*/
 
 	// prerequisite components
-	this.position = entity.position;
+	this.position = mh.kai.expect(entity, 'position', THREE.Vector3);
+	this.rotation = mh.kai.expect(entity, 'rotation', THREE.Vector3);
 };
 
 // required statics for component system
@@ -60,9 +62,8 @@ mh.THREECube.prototype = {
 	},
 
 	update: function() {
-		this._display.position.x = this.position.x;
-		this._display.position.y = this.position.y;
-		this._display.position.z = this.position.z;
+		this._display.position.copy(this.position);
+		this._display.rotation.setFromVector3(this.rotation);
 	},
 
 	dispose: function() {

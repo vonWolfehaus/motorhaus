@@ -5,33 +5,48 @@ var plumber = require('gulp-plumber');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var eslint = require('gulp-eslint');
+var runSequence = require('run-sequence');
 var fs = require('fs');
 var del = require('del');
+var Q = require('q');
 var browserSync = require('browser-sync').create();
 var reload = browserSync.reload;
 
 var dist = 'dist';
 var src = 'src';
 
-var glob = {
-	'core': [src+'/core/motorhaus.js', src+'/**/*.js', '!'+src+'/extras/**/*.js'],
-	'extras': [src+'/extras/**/*.js']
+var globCore = [src+'/core/motorhaus.js', src+'/**/*.js', '!'+src+'/extras/**/*.js'];
+var globExtras = {
+	'common': [src+'/extras/components/input/*.js', src+'/extras/components/Health.js', src+'/extras/components/graphics/Timer.js', src+'/extras/components/ai/StackFSM.js'],
+	'three': [src+'/extras/Scene.js', src+'/extras/components/graphics/THREECube.js'],
+	'pixi': [src+'/extras/Camera2.js', src+'/extras/TileMap2.js', src+'/extras/Vec2.js', src+'/extras/FlowGrid.js', src+'/extras/Emitter.js', src+'/extras/steering.js', src+'/extras/VectorFieldState.js', src+'/extras/entities/BoidGroup.js', src+'/extras/components/ai/Boid.js', src+'/extras/components/graphics/PIXISprite.js']
 };
 
 /*______________________________________________________________________
 	MACRO
 */
 
-gulp.task('default', ['core', 'extras']);
-gulp.task('dev', ['core', 'extras', 'examples']);
+gulp.task('default', function(callback) {
+	runSequence('clean',
+	            ['core', 'extras'],
+	            callback);
+});
+
+gulp.task('dev', function(callback) {
+	runSequence('clean',
+	            ['core', 'extras'],
+	            'examples',
+	            callback);
+});
+
 gulp.task('clean', del.bind(null, [dist]));
 
 /*______________________________________________________________________
 	SCRIPTS
 */
 
-gulp.task('core', ['clean'], function() {
-	return gulp.src(glob.core)
+gulp.task('core', function() {
+	return gulp.src(globCore)
 		.pipe(plumber({errorHandler: handleErrors}))
 		.pipe(eslint({ fix: true }))
 		.pipe(eslint.formatEach())
@@ -45,17 +60,27 @@ gulp.task('core', ['clean'], function() {
 });
 
 gulp.task('extras', function() {
-	return gulp.src(glob.extras)
-		.pipe(plumber({errorHandler: handleErrors}))
-		.pipe(eslint({ fix: true }))
-		.pipe(eslint.formatEach())
-		.pipe(eslint.failOnError())
-		.pipe(sourcemaps.init())
-		.pipe(concat('motorhaus-extras.min.js'))
-		.pipe(uglify())
-		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest(dist))
-		.pipe(browserSync.stream());
+	var promises = Object.keys(globExtras).map(function (key) {
+		var deferred = Q.defer();
+		var val = globExtras[key];
+
+		gulp.src(val)
+			.pipe(plumber({errorHandler: handleErrors}))
+			.pipe(eslint({ fix: true }))
+			.pipe(eslint.formatEach())
+			.pipe(eslint.failOnError())
+			.pipe(sourcemaps.init())
+			.pipe(concat('motorhaus-extras-'+key+'.min.js'))
+			.pipe(uglify())
+			.pipe(sourcemaps.write('.'))
+			.pipe(gulp.dest(dist))
+			.on('end', function () {
+				deferred.resolve();
+			});
+
+		return deferred.promise;
+	});
+	return Q.all(promises);
 });
 
 /*______________________________________________________________________
@@ -73,8 +98,10 @@ gulp.task('examples', function() {
 
 	browserSync.watch('examples/**/*.*').on('change', reload);
 	browserSync.watch(dist+'/**/*.*').on('change', reload);
-	gulp.watch(glob.core, ['core']);
-	gulp.watch(glob.extras, ['extras']);
+	gulp.watch(globCore, ['core']);
+	gulp.watch(globExtras.common, ['extras']);
+	gulp.watch(globExtras.three, ['extras']);
+	gulp.watch(globExtras.pixi, ['extras']);
 });
 
 /*______________________________________________________________________

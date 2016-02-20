@@ -2,7 +2,7 @@
 	Stack-based Finite State Machine.
 	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
 */
-var StackFSM = function(entity) {
+mh.StackFSM = function(entity) {
 	mh.Base.call(this);
 
 	// public properties
@@ -19,13 +19,13 @@ var StackFSM = function(entity) {
 };
 
 // required statics for component system
-StackFSM.accessor = 'stackFSM'; // property name as it sits on an entity
-StackFSM.className = 'STACK_FSM'; // name of component on the component definition object
-StackFSM.priority = 5; // general position in the engine's component array; the lower, the earlier it's updated
-StackFSM.post = false; // whether or not this component will have a postUpdate() called on it
+mh.StackFSM.accessor = 'stack'; // property name as it sits on an entity
+mh.StackFSM.className = 'STACK_FSM'; // name of component on the component definition object
+mh.StackFSM.priority = 5; // general position in the engine's component array; the lower, the earlier it's updated
+mh.StackFSM.post = false; // whether or not this component will have a postUpdate() called on it
 
-StackFSM.prototype = {
-	constructor: StackFSM,
+mh.StackFSM.prototype = {
+	constructor: mh.StackFSM,
 
 	activate: function() {
 		this.active = true;

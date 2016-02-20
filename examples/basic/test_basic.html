@@ -13,7 +13,7 @@
 			color: #fff;
 			overflow: hidden;
 		}
-		canvas {
+		#view {
 			position: absolute;
 			left: 0; right: 0; top: 0; bottom: 0;
 			margin: auto;
@@ -22,16 +22,30 @@
 </head>
 <body>
 
-	<canvas id="view"></canvas>
+	<div id="view"></div>
 
 	<script type="text/javascript" src="../_shared/vendor/three.min.js"></script>
 	<script type="text/javascript" src="../../dist/motorhaus.min.js"></script>
-	<!-- <script type="text/javascript" src="../../dist/motorhaus-extras.min.js"></script> -->
+	<script type="text/javascript" src="../../dist/motorhaus-extras-common.min.js"></script>
+	<script type="text/javascript" src="../../dist/motorhaus-extras-three.min.js"></script>
+
 	<script type="text/javascript" src="TestBasic.js"></script>
-	<!-- <script type="text/javascript" src="components.js"></script> -->
+
+	<script type="text/javascript" src="../_shared/entities/Cube.js"></script>
 	<script type="text/javascript">
+		// create motorhaus
 		var engine = new mh.Engine();
+
+		// register any components you've created so that they're usable in your game
+		mh.kai.registerComponents([
+			mh.THREECube,
+			mh.StackFSM,
+		]);
+
+		// add all states that your game will be using
 		engine.state.add('Start', ex.TestBasic);
+
+		// finally, start your game up, specifying the first state to run (in this case, it's the only state)
 		engine.start('Start');
 	</script>
 </body>
