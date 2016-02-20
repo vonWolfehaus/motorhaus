@@ -1,17 +1,18 @@
+/*
+	Handy component that dispatches a signal at a given interval, with other configuration options available.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
 mh.Timer = function(entity, settings) {
-	// augment with Base
+	settings = settings || {};
 	mh.Base.call(this);
 
-	settings = settings || {};
-	var config = {
-		repeat: -1, // set to -1 to repeat forever
-		immediateDispatch: false,
-		interval: 1000 // milliseconds
-	};
-	// attribute override
-	config = mh.util.merge(config, settings);
+	this.repeat = -1; // set to -1 to repeat forever
+	this.immediateDispatch = false;
+	this.interval = 1000; // milliseconds
 
-	this.onInterval = new Signal();
+	mh.util.overwrite(this, settings);
+
+	this.onInterval = new mh.Signal();
 
 	// private properties
 	this.entity = entity;
@@ -26,7 +27,6 @@ mh.Timer = function(entity, settings) {
 mh.Timer.accessor = 'timer'; // property name as it sits on an entity
 mh.Timer.className = 'TIMER'; // name of component on the ComponenDef object
 mh.Timer.priority = 13; // general position in the engine's component array; updated according to ascending order
-
 
 mh.Timer.prototype = {
 	constructor: mh.Timer,

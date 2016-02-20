@@ -1,22 +1,19 @@
+/*
+	Abstracts threejs cube creation so it's compatible with our entity-component system.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
 mh.THREECube = function(entity, settings) {
 	settings = settings || {};
 	mh.Base.call(this);
-	var config = {
-		textureUrl: 'img/square-outline-textured.png',
-		container: mh.kai.view,
-		size: 50,
-		dynamic: false,
-		color: 0xfeb74c
-	};
-	// attribute override
-	config = mh.util.merge(config, settings);
 
 	// attributes
-	this.textureUrl = config.textureUrl;
-	this.container = config.container;
-	this.size = config.size;
-	this.dynamic = config.dynamic;
-	this.color = config.color;
+	this.textureUrl = 'img/square-outline-textured.png';
+	this.container = mh.kai.view;
+	this.size = 50;
+	this.dynamic = false;
+	this.color = 0xfeb74c;
+
+	mh.util.overwrite(this, settings);
 
 	// private properties
 	this.entity = entity;

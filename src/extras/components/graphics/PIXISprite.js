@@ -1,15 +1,15 @@
+/*
+	Abstracts pixi sprite creation so it's compatible with our entity-component system.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
 mh.PIXISprite = function(entity, settings) {
 	settings = settings || {};
 	mh.Base.call(this);
-	var config = {
-		textureUrl: 'img/square-outline-textured.png',
-		container: mh.kai.view
-	};
-	// attribute override
-	config = mh.util.merge(config, settings);
 
-	this.textureUrl = config.textureUrl;
-	this.container = config.container;
+	this.textureUrl = 'img/square-outline-textured.png';
+	this.container = mh.kai.view;
+
+	mh.util.overwrite(this, settings);
 
 	// private properties
 	this.entity = entity;

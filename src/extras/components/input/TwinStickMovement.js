@@ -1,19 +1,18 @@
-define(function(require) {
-
-// imports
-var mh.util = require('utils/mh.util');
-
-// constructor
-var TwinStickMovement = function(entity, settings) {
-	// augment with Base
-	require('core/Base').call(this);
+/*
+	Converts a gamepad's analog sticks into acceleration (left) and rotation (right) vectors
+	for Geometry Wars style controls.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
+mh.TwinStickMovement = function(entity, settings) {
+	settings = settings || {};
+	mh.Base.call(this);
 
 	// attributes
 	this.speed = 1;
 	this.pad = null;
 
 	// attribute override
-	mh.util.merge(this, settings);
+	mh.util.overwrite(this, settings);
 
 	// private properties
 	this.entity = entity;
@@ -26,18 +25,21 @@ var TwinStickMovement = function(entity, settings) {
 };
 
 // required statics for component system
-TwinStickMovement.accessor = 'input'; // property name as it sits on an entity
-TwinStickMovement.className = 'INPUT_TWINSTICK'; // name of component on the ComponenDef object
-TwinStickMovement.priority = 20; // general position in the engine's component array; highest updated first
+mh.TwinStickMovement.accessor = 'input'; // property name as it sits on an entity
+mh.TwinStickMovement.className = 'INPUT_TWINSTICK'; // name of component on the ComponenDef object
+mh.TwinStickMovement.priority = 20; // general position in the engine's component array; highest updated first
 
-
-TwinStickMovement.prototype = {
-	constructor: TwinStickMovement,
+mh.TwinStickMovement.prototype = {
+	constructor: mh.TwinStickMovement,
 
 	activate: function() {
 		this.accel.x = this.accel.y = 0;
 		this.rotation.x = this.rotation.y = 0;
 		this.active = true;
+	},
+
+	disable: function() {
+		this.active = false;
 	},
 
 	update: function() {
@@ -52,7 +54,3 @@ TwinStickMovement.prototype = {
 		this.rotation = null;
 	}
 };
-
-return TwinStickMovement;
-
-});

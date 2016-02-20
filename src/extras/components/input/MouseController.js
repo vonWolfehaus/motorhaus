@@ -1,72 +1,72 @@
-define(['core/Kai'], function(Kai) {
+/*
+	Basic mouse tracker that exposes screen position, modifier keys, and events as Signals.
+	Not a component.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
+mh.MouseController = function() {
+	this.position = new mh.Vec2();
 
-return function MouseController() {
-	
-	this.position = new Vec2();
-	
-	this.onDown = new Signal();
-	this.onUp = new Signal();
-	
+	this.onDown = new mh.Signal();
+	this.onUp = new mh.Signal();
+
 	this.down = false;
 	this.shift = false;
 	this.ctrl = false;
-	
-	var _self = this,
-		_downPrev = false;
-	
-	function onDown(evt) {
-		if (Kai.inputBlocked) {
+
+	document.addEventListener('mousedown', this.onMouseDown, false);
+	document.addEventListener('mouseup', this.onMouseUp, false);
+	document.addEventListener('mouseout', this.onMouseUp, false);
+	document.addEventListener('mousemove', this.onMouseMove, false);
+	document.addEventListener('contextmenu', this.onMouseContext, false);
+};
+
+mh.MouseController.prototype = {
+	constructor: mh.MouseController,
+
+	onMouseDown: function(evt) {
+		if (mh.kai.inputBlocked) {
+			evt.preventDefault();
 			return;
 		}
-		
-		_self.position.x = evt.pageX;
-		_self.position.y = evt.pageY;
-		_self.down = true;
-		
-		_self.shift = !!evt.shiftKey;
-		_self.ctrl = !!evt.ctrlKey;
-		
-		_self.onDown.dispatch(_self.position);
-	}
-	
-	function onUp(evt) {
-		if (!_self.down || Kai.inputBlocked) {
+
+		this.position.x = evt.pageX;
+		this.position.y = evt.pageY;
+		this.down = true;
+
+		this.shift = !!evt.shiftKey;
+		this.ctrl = !!evt.ctrlKey;
+
+		this.onDown.dispatch(this.position);
+	},
+
+	onMouseUp: function(evt) {
+		if (!this.down || mh.kai.inputBlocked) {
+			evt.preventDefault();
 			return;
 		}
-		
-		_self.position.x = evt.pageX;
-		_self.position.y = evt.pageY;
-		_self.down = false;
-		
-		_self.shift = !!evt.shiftKey;
-		_self.ctrl = !!evt.ctrlKey;
-		
-		_self.onUp.dispatch(_self.position);
-	}
-	
-	function onMove(evt) {
+
+		this.position.x = evt.pageX;
+		this.position.y = evt.pageY;
+		this.down = false;
+
+		this.shift = !!evt.shiftKey;
+		this.ctrl = !!evt.ctrlKey;
+
+		this.onUp.dispatch(this.position);
+	},
+
+	onMouseMove: function(evt) {
 		evt.preventDefault();
-		
-		_self.position.x = evt.pageX;
-		_self.position.y = evt.pageY;
-		
-		_self.shift = !!evt.shiftKey;
-		_self.ctrl = !!evt.ctrlKey;
-	}
-	
-	function onContext(evt) {
+
+		this.position.x = evt.pageX;
+		this.position.y = evt.pageY;
+
+		this.shift = !!evt.shiftKey;
+		this.ctrl = !!evt.ctrlKey;
+	},
+
+	onMouseContext: function(evt) {
 		evt.preventDefault();
 		return false;
 	}
-	
-	(function init() {
-		document.addEventListener('mousedown', onDown, false);
-		document.addEventListener('mouseup', onUp, false);
-		document.addEventListener('mouseout', onUp, false);
-		document.addEventListener('mousemove', onMove, false);
-		document.addEventListener('contextmenu', onContext, false);
-	}());
-	
-} // class
-
-});
+};

@@ -1,39 +1,35 @@
-define(function(require) {
-
-// imports
-var mh.util = require('utils/mh.util');
-var World = require('core/World');
-var Physics = require('physics/Physics2');
-
-// constructor
-var CollisionGridScanner = function(entity, settings) {
-	// augment with Base
-	require('core/Base').call(this);
+/*
+	DEPRECATED in favor of von-physics
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
+mh.CollisionGridScanner = function(entity, settings) {
+	settings = settings || {};
+	mh.Base.call(this);
 
 	// attributes
 	this.scanRadius = 1;
 
 	// attribute override
-	mh.util.merge(this, settings);
-	// mh.util.testForRequired(entity, ['body']);
+	mh.util.overwrite(this, settings);
 
-	this.onCollision = new Signal();
+	this.onCollision = new mh.Signal();
+
+	// mh.kai.expect(entity, 'body', mh.RadialCollider);
 
 	// private properties
 	this.entity = entity;
 	this._body = entity.body;
-	this._nearby = new LinkedList();
-	this._grid = World.broadphase;
+	this._nearby = new mh.LinkedList();
+	this._grid = mh.world.broadphase;
 };
 
 // required statics for component system
-CollisionGridScanner.accessor = 'collisionScanner'; // property name as it sits on an entity
-CollisionGridScanner.className = 'COLLISION_SCANNER_RADIAL'; // name of component on the ComponenDef object
-CollisionGridScanner.priority = 5; // general position in the engine's component array; highest updated first
+mh.CollisionGridScanner.accessor = 'collisionScanner'; // property name as it sits on an entity
+mh.CollisionGridScanner.className = 'COLLISION_SCANNER_RADIAL'; // name of component on the ComponenDef object
+mh.CollisionGridScanner.priority = 5; // general position in the engine's component array; highest updated first
 
-
-CollisionGridScanner.prototype = {
-	constructor: CollisionGridScanner,
+mh.CollisionGridScanner.prototype = {
+	constructor: mh.CollisionGridScanner,
 
 	activate: function() {
 		this.active = true;
@@ -44,7 +40,7 @@ CollisionGridScanner.prototype = {
 	},
 
 	update: function() {
-		var node, obj, m;
+		var node, obj;
 		this._grid.getNeighbors(this._body, this.scanRadius, this._nearby);
 
 		node = this._nearby.first;
@@ -52,7 +48,7 @@ CollisionGridScanner.prototype = {
 			obj = node.obj;
 
 			// only tests! if you physics resolution, then just put it in the grid
-			if (Physics.testCircleVsCircle(obj, this._body)) {
+			if (mh.physics.testCircleVsCircle(obj, this._body)) {
 				this.onCollision.dispatch(obj);
 				break;
 			}
@@ -70,7 +66,3 @@ CollisionGridScanner.prototype = {
 		this.onCollision = null;
 	}
 };
-
-return CollisionGridScanner;
-
-});

@@ -1,10 +1,10 @@
 /*
 	Sets up and manages a THREEjs container, camera, and light, making it easy to get going.
 	Also provides camera control.
-
 	Assumes full screen.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
  */
-ex.Scene = function(sceneConfig, controlConfig) {
+mh.Scene = function(sceneConfig, controlConfig) {
 	var sceneSettings = {
 		element: document.body,
 		alpha: true,
@@ -96,8 +96,8 @@ ex.Scene = function(sceneConfig, controlConfig) {
 	this.attachTo(sceneSettings.element);
 };
 
-ex.Scene.prototype = {
-	constructor: ex.Scene,
+mh.Scene.prototype = {
+	constructor: mh.Scene,
 
 	attachTo: function(element) {
 		element.style.width = this.width + 'px';

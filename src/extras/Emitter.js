@@ -1,23 +1,20 @@
-var Kai = require('core/Kai');
-var mh.util = require('util/mh.util');
-var Pool = require('util/DualPool');
-var Vec2 = require('math/Vec2');
-
 /*
 	A basic particle emitter: point and area emission, and a few dynamic force types.
 	Does not require an entity.
 	Based on https://github.com/city41/particle.js
- */
-var Emitter = function(entity, settings) {
-	require('core/Base').call(this);
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
+mh.Emitter = function(entity, settings) {
+	settings = settings || {};
+	mh.Base.call(this);
 
 	// adjustable properties available to override in settings
 	this.width = 10; // setting a nice default
 	this.height = 10;
-	this.container = Kai.stage; // puts particles on top of everything
+	this.container = mh.mh.kai.stage; // puts particles on top of everything
 	this.blend = false;
 
-	this.emitType = Emitter.EmitType.Point;
+	this.emitType = mh.Emitter.EmitType.Point;
 	this.emitDuration = -1; // how long to emit for, in seconds, or -1 for forever
 	this.emitAngle = 0; // angle at which particles are emitted only in radians
 	this.emitAngleVar = mh.util.TAU; // "spread" of emission based around emitAngle in radians; default is full circle
@@ -46,14 +43,14 @@ var Emitter = function(entity, settings) {
 
 	this.particleGravity = null;
 
-	mh.util.merge(this, settings);
+	mh.util.overwrite(this, settings);
 
-	this.particleGravity = this.particleGravity || {x:0, y:0};
+	this.particleGravity = this.particleGravity || {x: 0, y: 0};
 
 	// public
 	this.entity = entity || null; // avoiding undefined
 	this.duration = 0;
-	this.position = new Vec2(); // get rid of Pixi's Point in favor of Vec2
+	this.position = new mh.Vec2(); // get rid of Pixi's Point in favor of Vec2
 	if (!this.uri) {
 		throw new Error('[Emitter] You must pass in an image uri through the settings parameter');
 	}
@@ -65,48 +62,48 @@ var Emitter = function(entity, settings) {
 	this.active = false;
 
 	// private
-	this._force = new Vec2(); // aggregate force applied to each particle on update(), resets on each iteration, do not use
-	this._vec = new Vec2(); // scratch Vec2 for update(), do not use
+	this._force = new mh.Vec2(); // aggregate force applied to each particle on update(), resets on each iteration, do not use
+	this._vec = new mh.Vec2(); // scratch Vec2 for update(), do not use
 	this._emitTimer = 0;
-	this._pool = new Pool(Particle, this, 15);
+	this._pool = new mh.DualPool(mh.Particle, this, 15);
 	this._emissionSum = 0;
 };
 
 // inherit from PIXI SpriteBatch
-Emitter.prototype = Object.create(PIXI.SpriteBatch.prototype);
-Emitter.prototype.constructor = Emitter;
+mh.Emitter.prototype = Object.create(PIXI.SpriteBatch.prototype);
+mh.Emitter.prototype.constructor = mh.Emitter;
 
 // required statics for component system
-Emitter.accessor = 'emitter'; // property name as it sits on an entity
-Emitter.className = 'EMITTER'; // name of component on the definition list object
-Emitter.priority = 50; // general position in the engine's component array; updated in ascending order
+mh.Emitter.accessor = 'emitter'; // property name as it sits on an entity
+mh.Emitter.className = 'EMITTER'; // name of component on the definition list object
+mh.Emitter.priority = 50; // general position in the engine's component array; updated in ascending order
 
 
 /*-------------------------------------------------------------------------------
 									COMPONENT INTERFACE
 -------------------------------------------------------------------------------*/
 
-Emitter.prototype.activate = function() {
+mh.Emitter.prototype.activate = function() {
 	this.active = true;
 	this.container.addChild(this);
 	this.visible = true;
 	this.duration = 0;
-	this._emissionSum = this.emitRate * Kai.elapsed;
+	this._emissionSum = this.emitRate * mh.kai.elapsed;
 };
 
-Emitter.prototype.disable = function() {
+mh.Emitter.prototype.disable = function() {
 	this.active = false;
 	this.container.removeChild(this);
 	this._pool.freeAll();
 };
 
-Emitter.prototype.update = function() {
+mh.Emitter.prototype.update = function() {
 	var i, p, o, l = this._pool.busy; // only loop through active particles
 
-	this.duration += Kai.elapsed;
+	this.duration += mh.kai.elapsed;
 	if (this.emitDuration === -1 || this.duration < this.emitDuration) {
 		// we can still emit
-		this._emissionSum += this.emitRate * Kai.elapsed;
+		this._emissionSum += this.emitRate * mh.kai.elapsed;
 		if (this._emissionSum >= 1) {
 			i = Math.floor(this._emissionSum);
 			this.emit(i);
@@ -126,7 +123,7 @@ Emitter.prototype.update = function() {
 		p = o.obj; // update our active particles
 		o = o.next;
 
-		p.duration += Kai.elapsed;
+		p.duration += mh.kai.elapsed;
 		if (p.alpha < 0 || p.duration >= this.particleDuration) {
 			p.visible = false; // no need to disable, it gets taken out of the busy list when recycled
 			this._pool.recycle(p);
@@ -134,10 +131,10 @@ Emitter.prototype.update = function() {
 		}
 
 		if (p.fadeDelay <= 0) {
-			p.alpha += this.particleAlphaAccel * Kai.elapsed;
+			p.alpha += this.particleAlphaAccel * mh.kai.elapsed;
 		}
 		else {
-			p.fadeDelay -= Kai.elapsed;
+			p.fadeDelay -= mh.kai.elapsed;
 		}
 
 		this._vec.set(p.vx, p.vy); // normalized velocity
@@ -149,15 +146,15 @@ Emitter.prototype.update = function() {
 		this._vec.perp();
 		this._vec.multiplyScalar(p.tangentialAccel);
 		// sum acceleration forces and integrate
-		p.vx += (this._force.x + this._vec.x + this.particleGravity.x) * Kai.elapsed;
-		p.vy += (this._force.y + this._vec.y + this.particleGravity.y) * Kai.elapsed;
-		p.position.x += p.vx * Kai.elapsed;
-		p.position.y += p.vy * Kai.elapsed;
-		p.rotation += p.rotationAccel * Kai.elapsed;
+		p.vx += (this._force.x + this._vec.x + this.particleGravity.x) * mh.kai.elapsed;
+		p.vy += (this._force.y + this._vec.y + this.particleGravity.y) * mh.kai.elapsed;
+		p.position.x += p.vx * mh.kai.elapsed;
+		p.position.y += p.vy * mh.kai.elapsed;
+		p.rotation += p.rotationAccel * mh.kai.elapsed;
 	}
 };
 
-Emitter.prototype.dispose = function() {
+mh.Emitter.prototype.dispose = function() {
 	this.removeChildren();
 	this.texture.destroy();
 	this._pool.dispose();
@@ -169,8 +166,8 @@ Emitter.prototype.dispose = function() {
 									PUBLIC
 -------------------------------------------------------------------------------*/
 
-Emitter.prototype.emit = function(amt) {
-	var Type = Emitter.EmitType;
+mh.Emitter.prototype.emit = function(amt) {
+	var Type = mh.Emitter.EmitType;
 	var a, i, ii, p;
 	// positions are relative to emitter (Pixi handles child coordinates)
 	for (i = 0; i < amt; i++) {
@@ -227,7 +224,7 @@ Emitter.prototype.emit = function(amt) {
 									STATIC
 -------------------------------------------------------------------------------*/
 
-Emitter.EmitType = {
+mh.Emitter.EmitType = {
 	Point: 0,
 	Rect: 2,
 	Circle: 4,
@@ -241,8 +238,8 @@ Emitter.EmitType = {
 
 /*
 	The Emitter will instantiate these as necessary, so you only need to mess with the Emitter and it will efficiently apply it to its children.
- */
-var Particle = function(parent) {
+*/
+mh.Particle = function(parent) {
 	PIXI.Sprite.call(this, parent.texture);
 	this.uuid = mh.util.generateID();
 
@@ -262,10 +259,10 @@ var Particle = function(parent) {
 };
 
 // inherit from PIXI Sprite
-Particle.prototype = Object.create(PIXI.Sprite.prototype);
-Particle.prototype.constructor = Particle;
+mh.Particle.prototype = Object.create(PIXI.Sprite.prototype);
+mh.Particle.prototype.constructor = mh.Particle;
 
-Particle.prototype.activate = function() {
+mh.Particle.prototype.activate = function() {
 	// many of these are overwritten by the emitter when spawned
 	this.active = true;
 	this.visible = true;
@@ -279,9 +276,7 @@ Particle.prototype.activate = function() {
 	this.rotationAccel = 0;
 };
 
-Particle.prototype.disable = function() {
+mh.Particle.prototype.disable = function() {
 	this.active = false;
 	this.visible = false;
 };
-
-module.exports = Emitter;

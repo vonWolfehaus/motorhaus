@@ -5,11 +5,12 @@
  * @author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
  */
  mh.Camera2 = function (settings) {
+	settings = settings || {};
 	mh.Base.call(this);
 
 	// attributes
-	this.width = Kai.width;
-	this.height = Kai.height;
+	this.width = mh.kai.width;
+	this.height = mh.kai.height;
 	this.scalable = false; // scale if there are multiple targets and they get outside of view
 	this.scale = 1;
 	this.minScale = 0.3; // how far it can zoom out
@@ -28,13 +29,13 @@
 	 * at all then set this to null. The values can be anything and are in World coordinates, with 0,0 being the center of the world.
 	 * @property {Rectangle} bounds - The Rectangle in which the Camera is bounded. Set to null to allow for movement anywhere.
 	 */
-	this.bounds = new Rectangle(0, 0, World.width, World.height);
+	this.bounds = new mh.Rectangle(0, 0, mh.world.width, mh.world.height);
 
-	mh.mh.util.merge(this, settings);
+	mh.util.overwrite(this, settings);
 
 	// base components
-	this.position = new Vec2();
-	// this.velocity = new Vec2();
+	this.position = new mh.Vec2();
+	// this.velocity = new mh.Vec2();
 
 	/**
 	 * @property {boolean} atLimit - Whether this camera is flush with the World Bounds or not.
@@ -67,9 +68,10 @@ mh.Camera2.prototype = {
 
 		if (Object.prototype.toString.call(target) === '[object Array]' ) {
 			console.log('[Camera2.follow] Tracking multiple targets');
-			this.target = new Vec2();
+			this.target = new mh.Vec2();
 			this.targets = target;
-		} else {
+		}
+		else {
 			this.target = target;
 		}
 
@@ -152,7 +154,7 @@ mh.Camera2.prototype = {
 	},
 
 	updateTarget: function () {
-		var i, minX, minY, maxX, maxY, w, h, rx, ry,
+		var i, minX, minY, maxX, maxY, w, h, rx, ry, pos,
 			t, len, lastActive, activeLen;
 
 		// loop through all the targets to find bounding area
@@ -185,17 +187,19 @@ mh.Camera2.prototype = {
 					w = maxX - minX + this.scalePadding;
 					h = maxY - minY + this.scalePadding;
 
-					rx = w === 0 ? 1 : Kai.width / w;
-					ry = h === 0 ? 1 : Kai.height / h;
+					rx = w === 0 ? 1 : mh.kai.width / w;
+					ry = h === 0 ? 1 : mh.kai.height / h;
 					if (rx < ry) {
 						this.scale = rx;
-					} else {
+					}
+					else {
 						this.scale = ry;
 					}
 
 					if (this.scale < this.minScale) {
 						this.scale = this.minScale;
-					} else if (this.scale > this.maxScale) {
+					}
+					else if (this.scale > this.maxScale) {
 						this.scale = this.maxScale;
 					}
 
@@ -205,7 +209,8 @@ mh.Camera2.prototype = {
 					// DebugDraw.circle(this.target.x - this.position.x, this.target.y - this.position.y, 2);
 				}
 
-			} else if (activeLen === 1) {
+			}
+			else if (activeLen === 1) {
 				this.target.x = lastActive.position.x;
 				this.target.y = lastActive.position.y;
 				this.scale = 1;
@@ -233,13 +238,14 @@ mh.Camera2.prototype = {
 				this.position.y = this._edge;
 			}
 
-		} else {
+		}
+		else {
 			this.focusOnXY(this.target.x, this.target.y);
 		}
 	},
 
 	setBoundsToWorld: function () {
-		this.bounds.setTo(0, 0, World.width, World.height);
+		this.bounds.setTo(0, 0, mh.world.width, mh.world.height);
 	},
 
 	/**
@@ -303,5 +309,4 @@ mh.Camera2.prototype = {
 		this.width = width;
 		this.height = height;
 	}
-
 };

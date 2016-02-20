@@ -1,32 +1,33 @@
-define(['core/Kai'], function(Kai) {
-/**
- * @author       Richard Davey <rich@photonstorm.com>
- * @copyright    2013 Photon Storm Ltd.
- * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
- */
-var KeyboardController = function() {
+
+/*
+	Abstracts keyboard input. This should be instantiated once and referenced in a globally-accessible object.
+	Not a component.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
+mh.KeyboardController = function() {
 	this.key = -1;
 
-	this.onDown = new Signal();
-	this.onUp = new Signal();
+	this.onDown = new mh.Signal();
+	this.onUp = new mh.Signal();
 
 	this.shift = false;
 	this.ctrl = false;
 
 	this._keys = {};
 	this._prev = null;
-	// this._capture = {};
 
 	document.addEventListener('keydown', this._processDown.bind(this), false);
 	document.addEventListener('keyup', this._processUp.bind(this), false);
 };
 
-KeyboardController.prototype = {
+mh.KeyboardController.prototype = {
+	constructor: mh.KeyboardController,
 
 	_processDown: function(evt) {
 		var key = this._keys[evt.keyCode];
-		// evt.preventDefault();
-		if (Kai.inputBlocked || this.key === this._prev) {
+
+		if (mh.kai.inputBlocked || this.key === this._prev) {
+			evt.preventDefault();
 			return;
 		}
 
@@ -38,7 +39,8 @@ KeyboardController.prototype = {
 			//  Key already down and still down, so update
 			this._keys[evt.keyCode].duration = performance.now() - key.timeDown;
 
-		} else {
+		}
+		else {
 			if (!key) {
 				//  Not used this key before, so register it
 				this._keys[evt.keyCode] = {
@@ -47,7 +49,8 @@ KeyboardController.prototype = {
 					timeUp: 0,
 					duration: 0
 				};
-			} else {
+			}
+			else {
 				//  Key used before but freshly down
 				this._keys[evt.keyCode].isDown = true;
 				this._keys[evt.keyCode].timeDown = performance.now();
@@ -60,8 +63,8 @@ KeyboardController.prototype = {
 	},
 
 	_processUp: function(evt) {
-		// evt.preventDefault();
-		if (Kai.inputBlocked) {
+		if (mh.kai.inputBlocked) {
+			evt.preventDefault();
 			return;
 		}
 
@@ -72,7 +75,8 @@ KeyboardController.prototype = {
 		if (this._keys[evt.keyCode]) {
 			this._keys[evt.keyCode].isDown = false;
 			this._keys[evt.keyCode].timeUp = performance.now();
-		} else {
+		}
+		else {
 			//  Not used this key before, so register it
 			this._keys[evt.keyCode] = {
 				isDown: false,
@@ -97,7 +101,7 @@ KeyboardController.prototype = {
 
 	/**
 	 * Returns the 'just pressed' state of the key. Just pressed is considered true if the key was pressed down within the duration given (default 250ms)
-	 * @param {number} keycode - The keycode of the key to remove, i.e. Kai.keys.UP or Kai.keys.SPACE_BAR
+	 * @param {number} keycode - The keycode of the key to remove, i.e. mh.kai.keys.UP or mh.kai.keys.SPACE_BAR
 	 * @param {number} [duration=100] - The duration below which the key is considered as being just pressed.
 	 * @return {boolean} True if the key is just pressed otherwise false.
 	 */
@@ -117,7 +121,7 @@ KeyboardController.prototype = {
 	/**
 	 * Returns the 'just released' state of the Key. Just released is considered as being true if the key was released within the duration given (default 250ms)
 	 * @method Phaser.Keyboard#justPressed
-	 * @param {number} keycode - The keycode of the key to remove, i.e. Kai.keys.UP or Kai.keys.SPACE_BAR
+	 * @param {number} keycode - The keycode of the key to remove, i.e. mh.kai.keys.UP or mh.kai.keys.SPACE_BAR
 	 * @param {number} [duration=100] - The duration below which the key is considered as being just released.
 	 * @return {boolean} True if the key is just released otherwise false.
 	 */
@@ -136,7 +140,7 @@ KeyboardController.prototype = {
 
 	/**
 	 * Returns true of the key is currently pressed down. Note that it can only detect key presses on the web browser.
-	 * @param {number} keycode - The keycode of the key to remove, i.e. Kai.keys.UP or Kai.keys.SPACE_BAR
+	 * @param {number} keycode - The keycode of the key to remove, i.e. mh.kai.keys.UP or mh.kai.keys.SPACE_BAR
 	 * @return {boolean} True if the key is currently down.
 	 */
 	isDown: function (keycode) {
@@ -244,9 +248,4 @@ KeyboardController.prototype = {
 	DELETE: 46,
 	HELP: 47,
 	NUM_LOCK: 144
-
 };
-
-return KeyboardController;
-
-});

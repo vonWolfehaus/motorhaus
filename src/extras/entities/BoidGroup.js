@@ -1,19 +1,11 @@
 /*
 	Controls a group of Boids for optimal pathing.
 	http://www.gamasutra.com/view/feature/131721/implementing_coordinated_movement.php?print=1
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
 */
-define(function(require) {
-
-// imports
-var Kai = require('core/Kai');
-var mh.util = require('utils/mh.util');
-var DualPool = require('utils/DualPool');
-var Steering = require('ancillary/Steering');
-var VonComponents = require('components/VonComponents');
-
-// constructor
-var BoidGroup = function(settings) {
-	require('core/Base').call(this);
+mh.BoidGroup = function(settings) {
+	settings = settings || {};
+	mh.Base.call(this);
 
 	// these are values that achieve optimal behavioral effects--use as a starting point
 	this.maxForce = 9999999; // this gets overwritten by the slowest member of the group
@@ -28,40 +20,40 @@ var BoidGroup = function(settings) {
 	// this.targetRadius = 20;
 
 	// attribute override
-	mh.util.merge(this, settings);
+	mh.util.overwrite(this, settings);
 
-	this.members = new LinkedList();
-	this.steeringForce = new Vec2();
+	this.members = new mh.LinkedList();
+	this.steeringForce = new mh.Vec2();
 
 	// private properties
 	// this._wanderAngle = 0;
 	this._currentPathNode = 0;
 	this._pathDir = 1;
 	this._arrived = true;
-	this._nodePool = new DualPool(Vec2, null, 5);
+	this._nodePool = new mh.DualPool(mh.Vec2, null, 5);
 
 	// prerequisite components
-	this.position = new Vec2(); // average position of all members
-	this.velocity = new Vec2(); // magnitude and orientation of the group
+	this.position = new mh.Vec2(); // average position of all members
+	this.velocity = new mh.Vec2(); // magnitude and orientation of the group
 	this.path = [];
 
-	Kai.addComponent(this, VonComponents.STACK_FSM);
+	mh.kai.addComponent(this, mh.Component.STACK_FSM);
 
-	this.onComplete = new Signal();
+	this.onComplete = new mh.Signal();
 
 	this.stackFSM.stateChanged.add(this._stateChanged, this);
 };
 
 // constants for passing into boid Signals
-BoidGroup.DETACHED = 0;
-BoidGroup.ATTACHED = 1;
+mh.BoidGroup.DETACHED = 0;
+mh.BoidGroup.ATTACHED = 1;
 
-BoidGroup.prototype = {
-	constructor: BoidGroup,
+mh.BoidGroup.prototype = {
+	constructor: mh.BoidGroup,
 
-	/*-------------------------------------------------------------------------------
-									PUBLIC
-	-------------------------------------------------------------------------------*/
+	/*___________________________________________________________________________
+			PUBLIC
+	*/
 
 	addBoid: function(boid) {
 		boid.groupID = this.groupID;
@@ -92,7 +84,7 @@ BoidGroup.prototype = {
 	},
 
 	removeBoid: function(boid) {
-		var a, node;
+		var node;
 		this.members.remove(boid);
 		this.maxForce = 9999999;
 
@@ -104,7 +96,6 @@ BoidGroup.prototype = {
 
 		node = this.members.first;
 		while (node) {
-			a = node.obj;
 			if (boid.maxForce < this.maxForce) {
 				this.maxForce = boid.maxForce;
 			}
@@ -198,7 +189,7 @@ BoidGroup.prototype = {
 	},
 
 	dispose: function() {
-		Kai.removeComponent(this, VonComponents.STACK_FSM);
+		mh.kai.removeComponent(this, mh.Component.STACK_FSM);
 		this.members.dispose();
 		this.members = null;
 		this._nodePool.dispose();
@@ -210,14 +201,14 @@ BoidGroup.prototype = {
 		this.path = null;
 	},
 
-	/*-------------------------------------------------------------------------------
-									BEHAVIORS: called every tick by StackFSM
-	-------------------------------------------------------------------------------*/
+	/*___________________________________________________________________________
+			BEHAVIORS: called every tick by StackFSM
+	*/
 
 	followPath: function followPath() {
 		var a, node = this.members.first;
 
-		Steering.followPath(this, this.path, this.repeat);
+		mh.Steering.followPath(this, this.path, this.repeat);
 
 		// update group position and apply new force to each member
 		this.position.x = 0;
@@ -232,7 +223,7 @@ BoidGroup.prototype = {
 				continue;
 			}
 
-			Steering.flock(a, this.members);
+			mh.Steering.flock(a, this.members);
 
 			this.position.add(a.position);
 			a.velocity.add(this.steeringForce);
@@ -248,9 +239,9 @@ BoidGroup.prototype = {
 		}
 	},
 
-	/*-------------------------------------------------------------------------------
-									PRIVATE: EVENTS
-	-------------------------------------------------------------------------------*/
+	/*___________________________________________________________________________
+			PRIVATE: EVENTS
+	*/
 
 	_stateChanged: function(oldState, newState) {
 		var target, a, node = this.members.first;
@@ -272,7 +263,7 @@ BoidGroup.prototype = {
 				// notify members
 				while (node) {
 					a = node.obj;
-					a.groupControl.dispatch(BoidGroup.ATTACHED);
+					a.groupControl.dispatch(mh.BoidGroup.ATTACHED);
 					node = node.next;
 				}
 				break;
@@ -284,7 +275,7 @@ BoidGroup.prototype = {
 				// notify members
 				while (node) {
 					a = node.obj;
-					a.groupControl.dispatch(BoidGroup.DETACHED);
+					a.groupControl.dispatch(mh.BoidGroup.DETACHED);
 					node = node.next;
 				}
 				// any anyone else
@@ -293,7 +284,3 @@ BoidGroup.prototype = {
 		}
 	}
 };
-
-return BoidGroup;
-
-});

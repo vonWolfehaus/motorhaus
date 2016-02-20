@@ -1,3 +1,7 @@
+/*
+	"Boid" behavior algorithms for more natural entity movement.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
 mh.steering = {
 	// cache of objects for reuse; there are a set for each function so they don't get overwritten
 	_sumForce: new mh.Vec2(),
@@ -26,7 +30,8 @@ mh.steering = {
 		if (distance < slowingRadius) {
 			this._desiredVec.multiplyScalar(agent.maxForce * (distance / slowingRadius));
 			agent.velocity.multiplyScalar(0.9); // apply friction to fight velocity (ie brake)
-		} else {
+		}
+		else {
 			this._desiredVec.multiplyScalar(agent.maxForce);
 		}
 
@@ -41,7 +46,7 @@ mh.steering = {
 	},
 
 	align: function(agent, flock) {
-		var i, a, distance, neighboursCount = 0;
+		var a, distance, neighboursCount = 0;
 		var node = flock.first;
 		this._alignForce.x = 0;
 		this._alignForce.y = 0;
@@ -80,7 +85,7 @@ mh.steering = {
 	},
 
 	cohere: function(agent, flock) {
-		var i, a, distance,
+		var a, distance,
 			neighboursCount = 0,
 			node = flock.first;
 
@@ -196,8 +201,8 @@ mh.steering = {
 				if (repeat) {
 					agent._pathDir *= -1;
 					agent._currentPathNode += agent._pathDir;
-
-				} else {
+				}
+				else {
 					agent._currentPathNode = path.length - 1;
 					target = path[agent._currentPathNode];
 					agent._arrived = true;

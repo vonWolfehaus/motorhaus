@@ -1,12 +1,10 @@
 /*
 	Controls the acceleration of an entity and enables steering behaviors to be used.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
 */
-define(function(require) {
-
-// constructor
-var Boid = function(entity, settings) {
-	// augment with Base
-	require('core/Base').call(this);
+mh.Boid = function(entity, settings) {
+	settings = settings || {};
+	mh.Base.call(this);
 
 	// these are values that achieve optimal behavioral effects--use as a starting point
 	this.maxForce = 10;
@@ -27,10 +25,10 @@ var Boid = function(entity, settings) {
 	this.targetRadius = 20;
 
 	// attribute override
-	mh.util.merge(this, settings);
+	mh.util.overwrite(this, settings);
 
 	this.entity = entity;
-	this.steeringForce = new Vec2(mh.util.random(this.maxForce), mh.util.random(this.maxForce));
+	this.steeringForce = new mh.Vec2(mh.util.random(this.maxForce), mh.util.random(this.maxForce));
 
 	this.maxSpeed = this.entity.maxSpeed || this.maxForce;
 	if (entity.body) {
@@ -45,21 +43,21 @@ var Boid = function(entity, settings) {
 	this._arrived = false;
 
 	// prerequisite components
-	this.position = Kai.expect(entity, 'position', Vec2);
-	this.rotation = Kai.expect(entity, 'rotation', Vec2);
-	this.velocity = Kai.expect(entity, 'velocity', Vec2);
+	this.position = mh.kai.expect(entity, 'position', mh.Vec2);
+	this.rotation = mh.kai.expect(entity, 'rotation', mh.Vec2);
+	this.velocity = mh.kai.expect(entity, 'velocity', mh.Vec2);
 
-	this.groupControl = new Signal();
+	this.groupControl = new mh.Signal();
 };
 
 // required statics for component system
-Boid.accessor = 'boid'; // property name as it sits on an entity
-Boid.className = 'BOID'; // name of component on the component definition object
-Boid.priority = 95; // just before the physics components (at 100) but otherwise dead last
-Boid.post = false; // whether or not this component will have a postUpdate() called on it
+mh.Boid.accessor = 'boid'; // property name as it sits on an entity
+mh.Boid.className = 'BOID'; // name of component on the component definition object
+mh.Boid.priority = 95; // just before the physics components (at 100) but otherwise dead last
+mh.Boid.post = false; // whether or not this component will have a postUpdate() called on it
 
-Boid.prototype = {
-	constructor: Boid,
+mh.Boid.prototype = {
+	constructor: mh.Boid,
 
 	activate: function() {
 		this.active = true;
@@ -102,7 +100,3 @@ Boid.prototype = {
 		this.velocity = null;
 	}
 };
-
-return Boid;
-
-});

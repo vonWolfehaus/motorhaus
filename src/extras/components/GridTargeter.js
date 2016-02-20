@@ -1,16 +1,11 @@
-/**
- * Class description
- */
-define(function(require) {
-
-// imports
-var World = require('core/World');
-var mh.util = require('utils/mh.util');
-
-// constructor
-var GridTargeter = function(entity, settings) {
-	// augment with Base
-	require('core/Base').call(this);
+/*
+	DEPRECATED in favor of von-physics
+	Scans the collision grid using `getNeighbors` so it finds nearest entity (any entity).
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
+mh.GridTargeter = function(entity, settings) {
+	settings = settings || {};
+	mh.Base.call(this);
 
 	// attributes
 	this.searchInterval = 1000;
@@ -19,12 +14,12 @@ var GridTargeter = function(entity, settings) {
 	this.target = null;
 
 	// attribute override
-	mh.util.merge(this, settings);
+	mh.util.overwrite(this, settings);
 
 	// private properties
 	this.entity = entity;
-	this._nearby = new LinkedList();
-	this._grid = World.broadphase;
+	this._nearby = new mh.LinkedList();
+	this._grid = mh.world.broadphase;
 	this._timer = 0;
 
 	// prerequisite components
@@ -32,13 +27,12 @@ var GridTargeter = function(entity, settings) {
 };
 
 // required statics for component system
-GridTargeter.accessor = 'gridTargeter'; // property name as it sits on an entity
-GridTargeter.className = 'GRID_TARGETER'; // name of component on the ComponenDef object
-GridTargeter.priority = 10; // general position in the engine's component array; highest updated first
+mh.GridTargeter.accessor = 'gridTargeter'; // property name as it sits on an entity
+mh.GridTargeter.className = 'GRID_TARGETER'; // name of component on the ComponenDef object
+mh.GridTargeter.priority = 10; // general position in the engine's component array; highest updated first
 
-
-GridTargeter.prototype = {
-	constructor: GridTargeter,
+mh.GridTargeter.prototype = {
+	constructor: mh.GridTargeter,
 
 	activate: function() {
 		this.active = true;
@@ -72,7 +66,7 @@ GridTargeter.prototype = {
 	-------------------------------------------------------------------------------*/
 
 	_findTarget: function() {
-		var node, obj, m;
+		var node, obj;
 		this._nearby.clear();
 		this._grid.getNearby(this.position, this.scanRadius, this._nearby);
 
@@ -88,7 +82,3 @@ GridTargeter.prototype = {
 		this.target = null;
 	}
 };
-
-return GridTargeter;
-
-});

@@ -1,21 +1,23 @@
-define(['engine/Kai', 'components/behaviors/Flock'], function(Kai, Flock) {
+/*
 
-return function VectorFieldState(entity) {
-
-	// public members unique to this component
-	this.uuid = Date.now() + '' + Math.floor(Math.random()*1000);
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
+*/
+mh.VectorFieldState = function(entity) {
+	this.uuid = mh.util.generateID();
 
 	this.fieldID = -1; // flow field index (as it sits in the array)
 	this.reachedGoal = true;
 
+	mh.kai.addComponent(entity, mh.Component.FLOCK, mh.Flock);
+
 	// shared references
-	var _position = null,
-		_vecField = Kai.flow;
+	var _position = entity.position,
+		_vecField = mh.kai.flow;
 
 	// internal settings
-	var _self = this,
-		// always best to use a timer to spread out the processing for expensive ops, especially when the user won't notice it
-		_pollTime = 12, _timer = Math.ceil(Math.random() * _pollTime);
+	// always best to use a timer to spread out the processing for expensive ops, especially when the user won't notice it
+	var _pollTime = 12,
+		_timer = Math.ceil(Math.random() * _pollTime);
 
 
 	this.update = function() {
@@ -24,10 +26,11 @@ return function VectorFieldState(entity) {
 		if (_timer < 0 && !this.reachedGoal) {
 			_timer = _pollTime;
 
-			if (_position.distanceTo(Kai.flow.goalPixels) < 100) {
+			if (_position.distanceTo(mh.kai.flow.goalPixels) < 100) {
 				// console.log('reached goal');
 				this.reachedGoal = true;
-			} else {
+			}
+			else {
 				node = entity.flock.nearby.first;
 				while (node) {
 					if (!node.obj.vecFieldState) {
@@ -53,13 +56,4 @@ return function VectorFieldState(entity) {
 		_position = null;
 		entity = null;
 	};
-
-	init();
-	function init() {
-		Kai.addComponent(entity, ComponentType.FLOCK, Flock);
-
-		_position = entity.position;
-	}
-} // class
-
-});
+};

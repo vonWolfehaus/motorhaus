@@ -9,7 +9,7 @@ mh.Vec2 = function(x, y) {
 mh.Vec2.draw = function(ctx, v1, v2, drawingColor, camOffsetX, camOffsetY) {
 	camOffsetX = camOffsetX || 0;
 	camOffsetY = camOffsetY || 0;
-	ctx.strokeStyle = !!drawingColor ? drawingColor : 'rgb(250, 10, 10)';
+	ctx.strokeStyle = drawingColor ? drawingColor : 'rgb(250, 10, 10)';
 	ctx.beginPath();
 	ctx.moveTo(v1.x + camOffsetX, v1.y + camOffsetY);
 	ctx.lineTo(v2.x + camOffsetX, v2.y + camOffsetY);
@@ -129,12 +129,14 @@ mh.Vec2.prototype = {
 	clamp: function(min, max) {
 		if ( this.x < min.x ) {
 			this.x = min.x;
-		} else if ( this.x > max.x ) {
+		}
+		else if ( this.x > max.x ) {
 			this.x = max.x;
 		}
 		if ( this.y < min.y ) {
 			this.y = min.y;
-		} else if ( this.y > max.y ) {
+		}
+		else if ( this.y > max.y ) {
 			this.y = max.y;
 		}
 		return this;
@@ -160,8 +162,8 @@ mh.Vec2.prototype = {
 
 	truncate: function(max) {
 		var l = this.getLength();
-	    if (l === 0 || l < max) return this;
-	    this.x /= l;
+		if (l === 0 || l < max) return this;
+		this.x /= l;
 		this.y /= l;
 		this.multiplyScalar(max);
 		return this;
@@ -229,7 +231,7 @@ mh.Vec2.prototype = {
 	 * Return a new Vector object using this as a start.
 	 */
 	clone: function() {
-		return new Vec2(this.x, this.y);
+		return new mh.Vec2(this.x, this.y);
 	},
 
 	/**
@@ -240,9 +242,9 @@ mh.Vec2.prototype = {
 	 * @param {type} [drawingColor] 	CSS-compatible color to use.
 	 */
 	draw: function(ctx, startX, startY, drawingColor) {
-		startX = !!startX ? startX : 0;
-		startY = !!startY ? startY : 0;
-		drawingColor = !!drawingColor ? drawingColor : 'rgb(0, 250, 0)';
+		startX = startX ? startX : 0;
+		startY = startY ? startY : 0;
+		drawingColor = drawingColor ? drawingColor : 'rgb(0, 250, 0)';
 
 		ctx.strokeStyle = drawingColor;
 		ctx.beginPath();

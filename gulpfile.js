@@ -14,24 +14,24 @@ var dist = 'dist';
 var src = 'src';
 
 var glob = {
-	scripts: [src+'/core/motorhaus.js', src+'/**/*.js', '!'+src+'/extras/**/*.js'],
-	extras: [src+'/extras/**/*.js']
+	'core': [src+'/core/motorhaus.js', src+'/**/*.js', '!'+src+'/extras/**/*.js'],
+	'extras': [src+'/extras/**/*.js']
 };
 
 /*______________________________________________________________________
 	MACRO
 */
 
-gulp.task('default', ['scripts']);
-gulp.task('dev', ['scripts', /*'extras',*/ 'examples']);
+gulp.task('default', ['core', 'extras']);
+gulp.task('dev', ['core', 'extras', 'examples']);
 gulp.task('clean', del.bind(null, [dist]));
 
 /*______________________________________________________________________
 	SCRIPTS
 */
 
-gulp.task('scripts', ['clean'], function() {
-	return gulp.src(glob.scripts)
+gulp.task('core', ['clean'], function() {
+	return gulp.src(glob.core)
 		.pipe(plumber({errorHandler: handleErrors}))
 		.pipe(eslint({ fix: true }))
 		.pipe(eslint.formatEach())
@@ -47,12 +47,12 @@ gulp.task('scripts', ['clean'], function() {
 gulp.task('extras', function() {
 	return gulp.src(glob.extras)
 		.pipe(plumber({errorHandler: handleErrors}))
-		// .pipe(eslint({ fix: true }))
-		// .pipe(eslint.formatEach())
-		// .pipe(eslint.failOnError())
+		.pipe(eslint({ fix: true }))
+		.pipe(eslint.formatEach())
+		.pipe(eslint.failOnError())
 		.pipe(sourcemaps.init())
 		.pipe(concat('motorhaus-extras.min.js'))
-		// .pipe(uglify())
+		.pipe(uglify())
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest(dist))
 		.pipe(browserSync.stream());
@@ -73,7 +73,8 @@ gulp.task('examples', function() {
 
 	browserSync.watch('examples/**/*.*').on('change', reload);
 	browserSync.watch(dist+'/**/*.*').on('change', reload);
-	gulp.watch(glob.scripts, ['scripts']);
+	gulp.watch(glob.core, ['core']);
+	gulp.watch(glob.extras, ['extras']);
 });
 
 /*______________________________________________________________________

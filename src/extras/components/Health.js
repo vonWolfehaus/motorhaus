@@ -1,12 +1,6 @@
-define(function(require) {
-
-// imports
-var mh.util = require('utils/mh.util');
-
-// constructor
-var Health = function(entity, settings) {
-	// augment with Base
-	require('core/Base').call(this);
+mh.Health = function(entity, settings) {
+	settings = settings || {};
+	mh.Base.call(this);
 
 	// attributes
 	this.max = 100;
@@ -15,13 +9,13 @@ var Health = function(entity, settings) {
 	this.active = false; // this component doesn't need to be updated
 
 	// attribute override
-	mh.util.merge(this, settings);
+	mh.util.overwrite(this, settings);
 
-	this.onDeath = new Signal();
-	this.onDamage = new Signal();
-	this.onHeal = new Signal();
-	this.onFull = new Signal();
-	this.onActivate = new Signal();
+	this.onDeath = new mh.Signal();
+	this.onDamage = new mh.Signal();
+	this.onHeal = new mh.Signal();
+	this.onFull = new mh.Signal();
+	this.onActivate = new mh.Signal();
 
 	// private properties
 	this.entity = entity;
@@ -29,13 +23,12 @@ var Health = function(entity, settings) {
 };
 
 // required statics for component system
-Health.accessor = 'health'; // property name as it sits on an entity
-Health.className = 'HEALTH'; // name of component on the ComponenDef object
-Health.priority = 1; // general position in the engine's component array; highest updated first
+mh.Health.accessor = 'health'; // property name as it sits on an entity
+mh.Health.className = 'HEALTH'; // name of component on the ComponenDef object
+mh.Health.priority = 1; // general position in the engine's component array; highest updated first
 
-
-Health.prototype = {
-	constructor: Health,
+mh.Health.prototype = {
+	constructor: mh.Health,
 
 	activate: function() {
 		this._meter = this.max;
@@ -53,7 +46,8 @@ Health.prototype = {
 			this.alive = false;
 
 			this.onDeath.dispatch(amount, this.entity);
-		} else {
+		}
+		else {
 			if (this._meter > this.max + this.overage) {
 				this._meter = this.max;
 
@@ -96,7 +90,3 @@ Health.prototype = {
 		this.onFull = null;
 	}
 };
-
-return Health;
-
-});

@@ -1,22 +1,16 @@
-define(function(require) {
-
-// imports
-// var Kai = require('core/Kai');
-var mh.util = require('utils/mh.util');
-
 /*
 	Stack-based Finite State Machine.
+	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
 */
 var StackFSM = function(entity) {
-	// augment with Base
-	require('core/Base').call(this);
+	mh.Base.call(this);
 
 	// public properties
 	this.state = null;
 	this.stack = [];
 	this.entity = entity;
 
-	this.stateChanged = new Signal();
+	this.stateChanged = new mh.Signal();
 
 	// private
 	this._activeContext = null;
@@ -29,7 +23,6 @@ StackFSM.accessor = 'stackFSM'; // property name as it sits on an entity
 StackFSM.className = 'STACK_FSM'; // name of component on the component definition object
 StackFSM.priority = 5; // general position in the engine's component array; the lower, the earlier it's updated
 StackFSM.post = false; // whether or not this component will have a postUpdate() called on it
-
 
 StackFSM.prototype = {
 	constructor: StackFSM,
@@ -93,7 +86,3 @@ StackFSM.prototype = {
 		this.stateChanged = null;
 	}
 };
-
-return StackFSM;
-
-});
