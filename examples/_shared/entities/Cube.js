@@ -28,6 +28,7 @@ ex.Cube.prototype = {
 
 	activate: function() {
 		this.active = true;
+		// don't forget to ALWAYS activate the components here
 		this.view.activate();
 		this.stack.activate();
 
@@ -37,6 +38,7 @@ ex.Cube.prototype = {
 
 	disable: function() {
 		this.active = false;
+		// and of course disable them as well
 		this.view.disable();
 		this.stack.disable();
 	},

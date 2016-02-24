@@ -2,17 +2,14 @@
 	Component description
 */
 mh.ComponentThing = function(entity, settings) {
+	settings = settings || {};
 	mh.Base.call(this); // always extend Base
 
-	settings = settings || {};
-	var config = {
-		foo: 1
-	};
-	// attribute override
-	config = mh.util.merge(config, settings);
-
-	// public properties
+	// attributes
 	this.foo = config.foo;
+
+	// attribute override
+	mh.util.overwrite(this, settings);
 
 	// other properties
 	this.entity = entity;
