@@ -7,7 +7,6 @@
 mh.kai = {
 	engine: null,
 	view: null, // the graphics manager (THREE.Scene or PIXI.Stage)
-	world: null, // optional, defined in states
 
 	mouse: null,
 	keys: null,

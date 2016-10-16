@@ -57,16 +57,15 @@ mh.Engine.prototype = {
 
 		// init global components
 		mh.kai.engine = this;
-
 		mh.kai.ready = true;
-
-		this.state.init();
-
-		mh.kai.inputBlocked = false;
 
 		if (mh.kai.debugMessages) {
 			console.log('[Engine] Ready');
 		}
+
+		this.state.init();
+
+		mh.kai.inputBlocked = false;
 
 		this.updateBound = this.update.bind(this);
 		this.updateBound();
