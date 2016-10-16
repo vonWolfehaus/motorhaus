@@ -1,53 +1,122 @@
 var gulp = require('gulp');
-var rjs = require('gulp-requirejs');
+var sourcemaps = require('gulp-sourcemaps');
+var notify = require('gulp-notify');
+var plumber = require('gulp-plumber');
+var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
-var rename = require('gulp-rename');
+var eslint = require('gulp-eslint');
+var runSequence = require('run-sequence');
 var fs = require('fs');
+var del = require('del');
+var Q = require('q');
+var browserSync = require('browser-sync').create();
+var reload = browserSync.reload;
 
-gulp.task('dev', function() {
-	var these = ['components/VonComponents', 'physics/CollisionGrid',
-				'utils/DebugDraw', 'utils/DOMTools', 'utils/DualPool', 'utils/Tools'];
-	
-	rjs({
-		baseUrl: 'src',
-		name: 'core/Engine',
-		include: these,
-		onBuildWrite: function(name, path, contents) {
-			return require('amdclean').clean({
-				code: contents,
-				removeAllRequires: true,
-				prefixTransform: function(moduleName) {
-					return moduleName.substring(moduleName.lastIndexOf('_') + 1, moduleName.length);
-				},
-				globalObject: true,
-				globalObjectName: 'von'/*,
-				globalModules: []*/
+var dist = 'dist';
+var src = 'src';
+
+var globCore = [src+'/core/motorhaus.js', src+'/**/*.js', '!'+src+'/extras/**/*.js'];
+var globExtras = {
+	'common': [src+'/extras/components/input/*.js', src+'/extras/components/Health.js', src+'/extras/components/graphics/Timer.js', src+'/extras/components/ai/StackFSM.js'],
+	'three': [src+'/extras/Scene.js', src+'/extras/components/graphics/THREECube.js'],
+	'pixi': [src+'/extras/Camera2.js', src+'/extras/TileMap2.js', src+'/extras/Vec2.js', src+'/extras/FlowGrid.js', src+'/extras/Emitter.js', src+'/extras/steering.js', src+'/extras/VectorFieldState.js', src+'/extras/entities/BoidGroup.js', src+'/extras/components/ai/Boid.js', src+'/extras/components/graphics/PIXISprite.js']
+};
+
+/*______________________________________________________________________
+	MACRO
+*/
+
+gulp.task('default', function(callback) {
+	runSequence('clean',
+	            ['core', 'extras'],
+	            callback);
+});
+
+gulp.task('dev', function(callback) {
+	runSequence('clean',
+	            ['core', 'extras'],
+	            'examples',
+	            callback);
+});
+
+gulp.task('clean', del.bind(null, [dist]));
+
+/*______________________________________________________________________
+	SCRIPTS
+*/
+
+gulp.task('core', function() {
+	return gulp.src(globCore)
+		.pipe(plumber({errorHandler: handleErrors}))
+		.pipe(eslint({ fix: true }))
+		.pipe(eslint.formatEach())
+		.pipe(eslint.failOnError())
+		.pipe(sourcemaps.init())
+		.pipe(concat('motorhaus.min.js'))
+		.pipe(uglify())
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest(dist))
+		.pipe(browserSync.stream());
+});
+
+gulp.task('extras', function() {
+	var promises = Object.keys(globExtras).map(function (key) {
+		var deferred = Q.defer();
+		var val = globExtras[key];
+
+		gulp.src(val)
+			.pipe(plumber({errorHandler: handleErrors}))
+			.pipe(eslint({ fix: true }))
+			.pipe(eslint.formatEach())
+			.pipe(eslint.failOnError())
+			.pipe(sourcemaps.init())
+			.pipe(concat('motorhaus-extras-'+key+'.min.js'))
+			.pipe(uglify())
+			.pipe(sourcemaps.write('.'))
+			.pipe(gulp.dest(dist))
+			.on('end', function () {
+				deferred.resolve();
 			});
-		},
-		out: 'von-component.js',
-		// optimize: 'uglify2', // thanks to rjs optimizer for sucking at optimizing, or at least the gulp plugin of it
-		// generateSourceMaps: true,
-		// preserveLicenseComments: false,
-		findNestedDependencies: true,
-		wrap: false/*{
-			startFile: 'wrapper/banner.js',
-			endFile: 'wrapper/outro.js'
-		}*/
-	})
-		.pipe(gulp.dest('dist/'));
+
+		return deferred.promise;
+	});
+	return Q.all(promises);
 });
 
-gulp.task('release', ['dev'], function() {
-	var min = 'dist/von-component.min.js';
-	if (fs.existsSync(min)) {
-		fs.unlinkSync(min);
-	}
-	
-	gulp.src('dist/von-component.js')
-		.pipe(uglify(/*{ outSourceMap: true }*/))
-		.pipe(rename({ suffix: '.min' }))
-		.pipe(gulp.dest('dist/'));
+/*______________________________________________________________________
+	SERVER
+*/
+
+gulp.task('examples', function() {
+	browserSync.init({
+		notify: false,
+		server: {
+			baseDir: ['./', './examples'],
+			index: './examples/index.html'
+		}
+	});
+
+	browserSync.watch('examples/**/*.*').on('change', reload);
+	browserSync.watch(dist+'/**/*.*').on('change', reload);
+	gulp.watch(globCore, ['core']);
+	gulp.watch(globExtras.common, ['extras']);
+	gulp.watch(globExtras.three, ['extras']);
+	gulp.watch(globExtras.pixi, ['extras']);
 });
 
+/*______________________________________________________________________
+	HELPERS
+*/
 
-gulp.task('default', ['release']);
+function handleErrors() {
+	var args = Array.prototype.slice.call(arguments);
+	// Send error to notification center with gulp-notify
+	notify.onError({
+		title: 'Build error',
+		message: '<%= error%>',
+		showStack: true
+	}).apply(this, args);
+
+	// Keep gulp from hanging on this task
+	this.emit('end');
+}
