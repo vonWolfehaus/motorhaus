@@ -4,14 +4,15 @@
 
 	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
 */
-mh.DualPool = function(classConstructor, instanceSettings, initSize) {
+mh.DualPool = function(classConstructor, initSize, instanceSettings) {
 	this._Class = classConstructor;
+	this.size = initSize;
+
 	this._freeList = new mh.LinkedList();
 	this._busyList = new mh.LinkedList();
+
 	this._settings = instanceSettings || {};
 	this._settings.pool = this;
-
-	this.size = initSize;
 
 	for (var i = 0; i < this.size; i++) {
 		this._freeList.add(new this._Class(this._settings));
@@ -54,9 +55,9 @@ mh.DualPool.prototype = {
 		var obj, node = this._busyList.first;
 		while (node) {
 			obj = node.obj;
+			node = node.next;
 			this._busyList.remove(obj);
 			this._freeList.add(obj);
-			node = node.next;
 		}
 	},
 

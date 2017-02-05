@@ -12,7 +12,7 @@ mh.BoidGroup = function(settings) {
 	// arrive
 	this.slowingRadius = 70;
 	this.pathArriveRadius = 60;
-	this.groupID = this.uuid; // never modify the uuid, so copy it to something we can mess with
+	this.groupID = this.uniqueID; // never modify the uniqueID, so copy it to something we can mess with
 	this.repeat = false;
 	// wander?
 	// this.angleJitter = 0.9;

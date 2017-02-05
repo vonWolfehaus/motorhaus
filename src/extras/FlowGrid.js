@@ -242,5 +242,5 @@ mh.FlowGridNode = function(gx, gy) {
 	this.open = true;
 	this.passable = true;
 
-	this.uuid = Date.now() + '' + Math.floor(Math.random()*1000);
+	this.uniqueID = Date.now() + '' + Math.floor(Math.random()*1000);
 };

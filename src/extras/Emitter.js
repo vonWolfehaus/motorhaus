@@ -58,7 +58,7 @@ mh.Emitter = function(entity, settings) {
 	// this.texture.frame = new PIXI.Rectangle(this.offsetX, this.offsetY, this.width, this.height);
 
 	// base
-	this.uuid = mh.util.generateID();
+	this.uniqueID = mh.util.generateID();
 	this.active = false;
 
 	// private
@@ -241,7 +241,7 @@ mh.Emitter.EmitType = {
 */
 mh.Particle = function(parent) {
 	PIXI.Sprite.call(this, parent.texture);
-	this.uuid = mh.util.generateID();
+	this.uniqueID = mh.util.generateID();
 
 	parent.addChildAt(this, 0);
 	this.anchor.set(0.5, 0.5);

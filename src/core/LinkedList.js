@@ -14,7 +14,7 @@
  * cached nodes) there can only be a single instance of an object in the list at the same time. Adding the same
  * object a second time will result in a silent return from the add method.
  * <p>
- * In order to keep a track of node links, an object must be able to identify itself with a uuid function.
+ * In order to keep a track of node links, an object must be able to identify itself with a uniqueID function.
  * <p>
  * To add an item use:
  * <pre><code>
@@ -36,7 +36,7 @@ mh.LinkedList = function() {
 	this.last = null;
 	this.length = 0;
 	this.objToNodeMap = {}; // a quick lookup list to map linked list nodes to objects
-	this.uuid = Date.now() + '' + Math.floor(Math.random()*1000);
+	this.uniqueID = Date.now() + '' + Math.floor(Math.random()*1000);
 	this.priority = 0; // used by Kai to sort component list such that some are updated before others
 };
 
@@ -48,8 +48,8 @@ mh.LinkedList.prototype = {
 	 * @param obj The object to get the node for
 	 */
 	getNode: function(obj) {
-		// objects added to a list must implement a getUniqueId which returns a unique object identifier string
-		return this.objToNodeMap[obj.uuid];
+		// objects added to a list must implement uniqueID which returns a unique object identifier string
+		return this.objToNodeMap[obj.uniqueID];
 	},
 
 	/**
@@ -62,13 +62,13 @@ mh.LinkedList.prototype = {
 		node.prev = null;
 		node.next = null;
 		node.free = false;
-		this.objToNodeMap[obj.uuid] = node;
+		this.objToNodeMap[obj.uniqueID] = node;
 		return node;
 	},
 
 	swapObjects: function(node, newObj) {
-		this.objToNodeMap[node.obj.uuid] = null;
-		this.objToNodeMap[newObj.uuid] = node;
+		this.objToNodeMap[node.obj.uniqueID] = null;
+		this.objToNodeMap[newObj.uniqueID] = node;
 		node.obj = newObj;
 	},
 
@@ -77,13 +77,16 @@ mh.LinkedList.prototype = {
 	 * @param obj The object to add
 	 */
 	add: function(obj) {
-		var node = this.objToNodeMap[obj.uuid];
+		var node = this.objToNodeMap[obj.uniqueID];
 
 		if (!node) {
 			node = this.addNode(obj);
 		}
 		else {
-			if (node.free === false) return;
+			if (!node.free) {
+				console.log('what')
+				return;
+			}
 
 			// reusing a node, so we clean it up
 			// this caching of node/object pairs is the reason an object can only exist
@@ -119,7 +122,7 @@ mh.LinkedList.prototype = {
 	},
 
 	has: function(obj) {
-		return !!this.objToNodeMap[obj.uuid];
+		return !!this.objToNodeMap[obj.uniqueID];
 	},
 
 	/**
@@ -203,9 +206,10 @@ mh.LinkedList.prototype = {
 	 * @returns boolean true if the item was removed, false if the item was not on the list
 	 */
 	remove: function(obj) {
-		var node = this.getNode(obj);
-		if (node == null || node.free == true){
-			return false; // ignore this error (trying to remove something not there)
+		var node = this.objToNodeMap[obj.uniqueID];
+		if (node == null || node.free == true) {
+			// console.log('trying to remove something not there')
+			return false; // ignore this error
 		}
 
 		// pull this object out and tie up the ends

@@ -3,7 +3,7 @@
 	@author Corey Birnbaum http://coldconstructs.com/ @vonWolfehaus
 */
 mh.VectorFieldState = function(entity) {
-	this.uuid = mh.util.generateID();
+	this.uniqueID = mh.util.generateID();
 
 	this.fieldID = -1; // flow field index (as it sits in the array)
 	this.reachedGoal = true;
