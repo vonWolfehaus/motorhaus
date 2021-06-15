@@ -1,4 +1,6 @@
-This is a framework for prototyping games that I'm building for kicks.
+# NOTE: This is no longer maintained
+
+This is a framework for prototyping games that I made for kicks.
 
 I recommend going with [Unity3D](http://unity3d.com/) for a full engine.
 
